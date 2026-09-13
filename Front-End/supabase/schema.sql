@@ -99,3 +99,22 @@ drop policy if exists "anon read whiteboard"  on public.whiteboard;
 drop policy if exists "anon insert whiteboard" on public.whiteboard;
 create policy "anon read whiteboard"  on public.whiteboard for select using (true);
 create policy "anon insert whiteboard" on public.whiteboard for insert with check (true);
+
+-- ── Audit Log (backend service_role) ───────────────────────────────────
+-- Ditulis oleh backend (service_role), TIDAK di-expose ke anon.
+-- service_role bypass RLS, jadi cukup enable tanpa policy publik.
+create table if not exists public.audit_log (
+  id          uuid primary key default gen_random_uuid(),
+  actor       text not null default 'anonymous',
+  method      text not null,
+  path        text not null,
+  entity      text not null,
+  entity_id   uuid,
+  action      text not null,          -- create | update | delete
+  changes     jsonb not null default '{}',   -- {before, after}
+  status_code smallint not null,
+  ip          text,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.audit_log enable row level security;

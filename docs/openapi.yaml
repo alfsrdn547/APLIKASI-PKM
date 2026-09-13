@@ -1,0 +1,542 @@
+openapi: 3.0.3
+info:
+  title: RPH API
+  version: 1.0.0
+  description: |
+    RESTful API untuk RPH (digitalisasi pencatatan harian Rumah Potong Hewan).
+    Backend PHP → Supabase (service_role). Semua nilai dihitung/divalidasi server-side.
+    Lihat docs/API_SPEC.md untuk detail middleware & audit log.
+servers:
+  - url: https://api.rph.example.com/api/v1
+    description: Production (ganti sesuai domain nyata)
+tags:
+  - name: Penerimaan
+  - name: Pemotongan
+  - name: Penjualan
+  - name: Pengeluaran
+  - name: Reports
+  - name: Constants
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Validasi gagal
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Token tidak valid / tidak ada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Record tidak ditemukan
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  parameters:
+    FromDate:
+      in: query
+      name: from
+      schema: { type: string, format: date }
+      description: Batas awal (YYYY-MM-DD)
+    ToDate:
+      in: query
+      name: to
+      schema: { type: string, format: date }
+      description: Batas akhir (YYYY-MM-DD)
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, description: 'VALIDATION_ERROR | STOCK_INSUFFICIENT | NOT_FOUND | FUTURE_DATE | UNAUTHORIZED' }
+            message: { type: string }
+            fields:
+              type: object
+              additionalProperties: { type: string }
+              description: Pemetaan field → pesan (validasi per-field)
+    DateInput:
+      type: string
+      format: date
+      description: 'YYYY-MM-DD. TIDAK boleh di masa depan.'
+    Incoming:
+      type: object
+      required: [id, date, chickenIn, chickenDead, chickenBroken, notes, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        date: { $ref: '#/components/schemas/DateInput' }
+        chickenIn: { type: integer, minimum: 0 }
+        chickenDead: { type: integer, minimum: 0 }
+        chickenBroken: { type: integer, minimum: 0 }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+    IncomingInput:
+      type: object
+      required: [date, chickenIn, chickenDead, chickenBroken]
+      properties:
+        date: { $ref: '#/components/schemas/DateInput' }
+        chickenIn: { type: integer, minimum: 1 }
+        chickenDead: { type: integer, minimum: 0 }
+        chickenBroken: { type: integer, minimum: 0 }
+        notes: { type: string }
+      x-validate:
+        - "chickenDead <= chickenIn"
+        - "chickenBroken <= chickenIn"
+        - "date tidak boleh future"
+    ButcheryPart:
+      type: object
+      required: [productCode, qtyKg]
+      properties:
+        productCode: { type: string, description: 'Kode produk (unit=kg): DAD, PAH, ...' }
+        qtyKg: { type: number, minimum: 0 }
+    Butchery:
+      type: object
+      required: [id, date, chickenCount, parts, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        date: { $ref: '#/components/schemas/DateInput' }
+        incomingId:
+          type: string
+          format: uuid
+          nullable: true
+        chickenCount: { type: integer, minimum: 1 }
+        parts:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ButcheryPart' }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+    SaleItem:
+      type: object
+      required: [productCode, productName, quantity, unitPrice]
+      properties:
+        productCode: { type: string }
+        productName: { type: string }
+        quantity: { type: number, minimum: 0 }
+        unitPrice: { type: number, minimum: 0 }
+        subtotal: { type: number, readOnly: true }
+    Sale:
+      type: object
+      required: [id, date, customerName, items, totalAmount, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        date: { $ref: '#/components/schemas/DateInput' }
+        customerName: { type: string }
+        customerPhone: { type: string }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/SaleItem' }
+        totalAmount: { type: number, readOnly: true, description: 'Dihitung server: Σ qty×price' }
+        status: { type: string, enum: [pending, processing, completed, cancelled] }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+    SaleInput:
+      type: object
+      required: [date, customerName, items]
+      properties:
+        date: { $ref: '#/components/schemas/DateInput' }
+        customerName: { type: string, minLength: 1 }
+        customerPhone: { type: string }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/SaleItem' }
+        notes: { type: string }
+        status: { type: string, enum: [pending, processing, completed, cancelled], default: pending }
+      x-validate:
+        - "per-item quantity <= stok available (409 jika tidak cukup)"
+        - "totalAmount diabaikan dari client"
+    Expense:
+      type: object
+      required: [id, date, category, description, amount, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        date: { $ref: '#/components/schemas/DateInput' }
+        category: { type: string, enum: [es_batu, biaya_angkut, pakan, operasional_alat, lainnya] }
+        description: { type: string, minLength: 1 }
+        amount: { type: number, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+    WhiteboardEntry:
+      type: object
+      required: [productCode, openingStock, incoming, outgoing, closingStock, unitPrice]
+      properties:
+        productCode: { type: string }
+        openingStock: { type: number, minimum: 0 }
+        incoming: { type: number, minimum: 0 }
+        outgoing: { type: number, minimum: 0 }
+        closingStock: { type: number, minimum: 0 }
+        unitPrice: { type: number }
+    DailySummaryRow:
+      type: object
+      required: [date, totalChickenIn, totalChickenDead, netProduction, totalSales, totalRevenue, totalExpenses, profit]
+      properties:
+        date: { $ref: '#/components/schemas/DateInput' }
+        totalChickenIn: { type: integer }
+        totalChickenDead: { type: integer }
+        netProduction: { type: integer }
+        totalSales: { type: integer }
+        totalRevenue: { type: number }
+        totalExpenses: { type: number }
+        profit: { type: number }
+    ProductCatalog:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            type: object
+            required: [code, name, unit, category]
+            properties:
+              code: { type: string }
+              name: { type: string }
+              unit: { type: string, enum: [kg, ekor] }
+              category: { type: string, enum: [karkas, potongan, fillet, organ, lainnya] }
+        defaultPrices: { type: object, additionalProperties: { type: number } }
+        butcheryDistribution: { type: object, additionalProperties: { type: number } }
+        avgWeightPerEkor: { type: number }
+
+paths:
+  /products:
+    get:
+      summary: Katalog produk, harga, & distribusi pemotongan
+      tags: [Constants]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductCatalog' }
+
+  /incoming:
+    get:
+      summary: List penerimaan
+      tags: [Penerimaan]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/FromDate' }
+        - { $ref: '#/components/parameters/ToDate' }
+      responses:
+        '200':
+          description: Array penerimaan
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Incoming' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      summary: Tambah penerimaan
+      tags: [Penerimaan]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IncomingInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Incoming' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /incoming/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Hapus penerimaan
+      tags: [Penerimaan]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: No Content }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /butchery:
+    get:
+      summary: List pemotongan
+      tags: [Pemotongan]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/FromDate' }
+        - { $ref: '#/components/parameters/ToDate' }
+      responses:
+        '200':
+          description: Array pemotongan
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Butchery' }
+    post:
+      summary: Tambah pemotongan manual
+      tags: [Pemotongan]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Butchery' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Butchery' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /butchery/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Hapus pemotongan
+      tags: [Pemotongan]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: No Content }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /sales:
+    get:
+      summary: List penjualan
+      tags: [Penjualan]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/FromDate' }
+        - { $ref: '#/components/parameters/ToDate' }
+        - { name: customer, in: query, schema: { type: string }, description: 'Cari by nama' }
+        - { name: status, in: query, schema: { type: string, enum: [pending, processing, completed, cancelled] } }
+      responses:
+        '200':
+          description: Array penjualan
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Sale' }
+    post:
+      summary: Buat order penjualan (totalAmount & stok server-side)
+      tags: [Penjualan]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaleInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sale' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Stok tidak cukup
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Error' }
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        properties:
+                          code: { enum: [STOCK_INSUFFICIENT] }
+                          fields: { type: object, description: 'Pemetaan productCode → sisa stok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /sales/{id}/status:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      summary: Ubah status order
+      tags: [Penjualan]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [pending, processing, completed, cancelled] }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sale' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /sales/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Hapus order (batal; stok kembali)
+      tags: [Penjualan]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: No Content }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /expenses:
+    get:
+      summary: List pengeluaran
+      tags: [Pengeluaran]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/FromDate' }
+        - { $ref: '#/components/parameters/ToDate' }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Array pengeluaran
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Expense' }
+    post:
+      summary: Tambah pengeluaran
+      tags: [Pengeluaran]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, category, description, amount]
+              properties:
+                date: { $ref: '#/components/schemas/DateInput' }
+                category: { type: string, enum: [es_batu, biaya_angkut, pakan, operasional_alat, lainnya] }
+                description: { type: string, minLength: 1 }
+                amount: { type: number, minimum: 0 }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /expenses/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Hapus pengeluaran
+      tags: [Pengeluaran]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: No Content }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /reports/whiteboard:
+    get:
+      summary: Papan tulis untuk satu tanggal (manual butchery = sumber)
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Per-produk stok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/WhiteboardEntry' }
+        '400': { description: date wajib / future }
+
+  /reports/daily-summary:
+    get:
+      summary: Rekap harian
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/FromDate' }
+        - { $ref: '#/components/parameters/ToDate' }
+        - { name: month, in: query, schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' }, description: 'YYYY-MM (alternatif dari/to)' }
+      responses:
+        '200':
+          description: Array ringkasan harian
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DailySummaryRow' }
+
+  /reports/stock:
+    get:
+      summary: Stok satu produk pada tanggal (dipakai utk validasi sales)
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: productCode, in: query, required: true, schema: { type: string } }
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Stok
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [opening, incoming, outgoing, closing]
+                properties:
+                  opening: { type: number }
+                  incoming: { type: number }
+                  outgoing: { type: number }
+                  closing: { type: number }
+
+  /audit-log:
+    get:
+      summary: List audit log (admin/intern)
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: entity, in: query, schema: { type: string } }
+        - { name: entityId, in: query, schema: { type: string } }
+        - { $ref: '#/components/parameters/FromDate' }
+      responses:
+        '200':
+          description: Audit entries (terbaru dulu)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string, format: uuid }
+                    actor: { type: string }
+                    method: { type: string }
+                    path: { type: string }
+                    entity: { type: string }
+                    entityId: { type: string }
+                    action: { type: string, enum: [create, update, delete] }
+                    changes: { type: object, description: '{before, after}' }
+                    statusCode: { type: integer }
+                    createdAt: { type: string, format: date-time }

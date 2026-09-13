@@ -1,0 +1,20 @@
+{
+  "name": "rph/backend",
+  "description": "RPH API backend — PHP (Slim 4) → Supabase/PostgREST (service_role)",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "slim/slim": "^4.12",
+    "slim/psr7": "^1.6",
+    "guzzlehttp/guzzle": "^7.8",
+    "firebase/php-jwt": "^6.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "scripts": {
+    "serve": "php -S localhost:8787 -t public public/index.php"
+  }
+}

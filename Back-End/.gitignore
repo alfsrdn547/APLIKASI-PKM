@@ -1,0 +1,4 @@
+# PHP
+/vendor/
+.env
+*.log
