@@ -48,6 +48,29 @@ export function IncomingTable() {
       ),
     },
     {
+      key: "nopol",
+      header: "Nopol",
+      render: (r: (typeof filtered)[0]) => (
+        <span className="text-sm text-gray-500">{r.nopol || "-"}</span>
+      ),
+    },
+    {
+      key: "tonase",
+      header: "Tonase (kg)",
+      render: (r: (typeof filtered)[0]) => (
+        <span className="font-mono text-sm">{r.tonase ? r.tonase.toLocaleString("id-ID") : "-"}</span>
+      ),
+    },
+    {
+      key: "totalHarga",
+      header: "Total Harga",
+      render: (r: (typeof filtered)[0]) => (
+        <span className="font-mono text-sm">
+          {r.totalHarga ? `Rp ${r.totalHarga.toLocaleString("id-ID")}` : "-"}
+        </span>
+      ),
+    },
+    {
       key: "notes",
       header: "Catatan",
       render: (r: (typeof filtered)[0]) => (

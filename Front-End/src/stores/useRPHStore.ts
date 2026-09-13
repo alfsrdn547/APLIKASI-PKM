@@ -7,7 +7,11 @@ import type {
   WhiteboardEntry,
   OrderStatus,
   ExpenseCategory,
+  ExpenseDirection,
+  ExpenseSourceFund,
   ButcheryRecord,
+  PayStatus,
+  PickupStatus,
 } from "@/types";
 import { PRODUCTS, DEFAULT_PRICES } from "@/constants/products";
 import { supabase } from "@/lib/supabase";
@@ -19,42 +23,61 @@ interface IncomingRow {
   chicken_in: number;
   chicken_dead: number;
   chicken_broken: number;
+  nopol: string;
+  tonase_kg: number;
+  harga_per_kg: number;
+  total_harga: number;
+  kasbon: number;
   notes: string;
   created_at: string;
 }
 const mapIncoming = (r: IncomingRow): IncomingRecord => ({
   id: r.id, date: r.date.slice(0, 10),
   chickenIn: r.chicken_in, chickenDead: r.chicken_dead, chickenBroken: r.chicken_broken,
+  nopol: r.nopol ?? "", tonase: r.tonase_kg ?? 0, hargaPerKg: r.harga_per_kg ?? 0,
+  totalHarga: r.total_harga ?? 0, kasbon: r.kasbon ?? 0,
   notes: r.notes, createdAt: r.created_at,
 });
 const toIncomingRow = (r: Omit<IncomingRecord, "id" | "createdAt">) => ({
   date: r.date, chicken_in: r.chickenIn, chicken_dead: r.chickenDead,
-  chicken_broken: r.chickenBroken, notes: r.notes,
+  chicken_broken: r.chickenBroken, nopol: r.nopol, tonase_kg: r.tonase,
+  harga_per_kg: r.hargaPerKg, total_harga: r.totalHarga, kasbon: r.kasbon,
+  notes: r.notes,
 });
 
 interface SalesRow {
   id: string; date: string; customer_name: string; customer_phone: string;
   items: any[]; total_amount: number; status: string; notes: string; created_at: string;
+  pay_status: string; pickup_status: string; paid_amount: number;
 }
 const mapSales = (r: SalesRow): SalesOrder => ({
   id: r.id, date: r.date.slice(0, 10), customerName: r.customer_name,
   customerPhone: r.customer_phone, items: r.items, totalAmount: r.total_amount,
-  status: r.status as OrderStatus, notes: r.notes, createdAt: r.created_at,
+  status: r.status as OrderStatus,
+  payStatus: (r.pay_status as PayStatus) || "belum_lunas",
+  pickupStatus: (r.pickup_status as PickupStatus) || "belum_diambil",
+  paidAmount: r.paid_amount || 0,
+  notes: r.notes, createdAt: r.created_at,
 });
 const toSalesRow = (r: Omit<SalesOrder, "id" | "createdAt" | "totalAmount">) => ({
   date: r.date, customer_name: r.customerName, customer_phone: r.customerPhone,
   items: r.items, total_amount: 0, status: r.status, notes: r.notes,
+  pay_status: r.payStatus, pickup_status: r.pickupStatus, paid_amount: r.paidAmount,
 });
 
 interface ExpenseRow {
-  id: string; date: string; category: string; description: string; amount: number; created_at: string;
+  id: string; date: string; category: string; direction: string;
+  source_fund: string; description: string; amount: number; created_at: string;
 }
 const mapExpense = (r: ExpenseRow): ExpenseRecord => ({
   id: r.id, date: r.date.slice(0, 10), category: r.category as ExpenseCategory,
+  direction: (r.direction as ExpenseDirection) || "keluar",
+  sourceFund: (r.source_fund as ExpenseSourceFund) || "kas",
   description: r.description, amount: r.amount, createdAt: r.created_at,
 });
 const toExpenseRow = (r: Omit<ExpenseRecord, "id" | "createdAt">) => ({
-  date: r.date, category: r.category, description: r.description, amount: r.amount,
+  date: r.date, category: r.category, direction: r.direction,
+  source_fund: r.sourceFund, description: r.description, amount: r.amount,
 });
 
 interface ButcheryRow {
@@ -97,6 +120,11 @@ interface RPHState {
   // Modul 3 — Sales
   addSalesOrder: (order: Omit<SalesOrder, "id" | "createdAt" | "totalAmount">) => Promise<void>;
   updateOrderStatus: (id: string, status: OrderStatus) => Promise<void>;
+  updateOrderPayment: (id: string, patch: {
+    payStatus?: PayStatus;
+    pickupStatus?: PickupStatus;
+    paidAmount?: number;
+  }) => Promise<void>;
 
   // Modul 3 — Expenses
   addExpense: (rec: Omit<ExpenseRecord, "id" | "createdAt">) => Promise<void>;
@@ -250,6 +278,27 @@ export const useRPHStore = create<RPHState>((set, get) => ({
     if (error) throw new Error(error.message);
     set((s) => ({
       sales: s.sales.map((o) => (o.id === id ? { ...o, status } : o)),
+    }));
+  },
+
+  updateOrderPayment: async (id, patch) => {
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.payStatus) dbPatch.pay_status = patch.payStatus;
+    if (patch.pickupStatus) dbPatch.pickup_status = patch.pickupStatus;
+    if (patch.paidAmount !== undefined) dbPatch.paid_amount = patch.paidAmount;
+    const { error } = await supabase.from("sales").update(dbPatch).eq("id", id);
+    if (error) throw new Error(error.message);
+    set((s) => ({
+      sales: s.sales.map((o) =>
+        o.id === id
+          ? {
+              ...o,
+              payStatus: patch.payStatus ?? o.payStatus,
+              pickupStatus: patch.pickupStatus ?? o.pickupStatus,
+              paidAmount: patch.paidAmount !== undefined ? patch.paidAmount : o.paidAmount,
+            }
+          : o
+      ),
     }));
   },
 

@@ -7,11 +7,9 @@ export interface Product {
 }
 
 export type ProductCategory =
-  | "karkas"
-  | "potongan"
-  | "fillet"
-  | "organ"
-  | "lainnya";
+  | "ayam_utuh"
+  | "daging"
+  | "sampingan";
 
 // ─── Modul 1: Penerimaan / Stok Harian ────────────────────────────────
 export interface IncomingRecord {
@@ -20,6 +18,11 @@ export interface IncomingRecord {
   chickenIn: number;      // ekor masuk (surat jalan)
   chickenDead: number;    // ekor mati / afkir
   chickenBroken: number;  // ekor afkir ringan (dipisah untuk tracing)
+  nopol: string;          // no. polisi kendaraan
+  tonase: number;         // berat masuk (kg)
+  hargaPerKg: number;     // harga per kg
+  totalHarga: number;     // total (auto: ekor × harga)
+  kasbon: number;         // kasbon (opsional)
   notes: string;
   createdAt: string;
 }
@@ -49,6 +52,9 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
+export type PayStatus = "lunas" | "belum_lunas";
+export type PickupStatus = "sudah_diambil" | "belum_diambil";
+
 export interface SalesItem {
   productCode: string;
   productName: string;
@@ -66,8 +72,15 @@ export interface SalesOrder {
   items: SalesItem[];
   totalAmount: number;
   status: OrderStatus;
+  payStatus: PayStatus;
+  pickupStatus: PickupStatus;
+  paidAmount: number;
   notes: string;
   createdAt: string;
+}
+
+export interface InvoicePrintOrder extends SalesOrder {
+  // Alias utk komponen print yang butuh daily info (opsional)
 }
 
 // ─── Modul 3: Transaksi Pengeluaran ──────────────────────────────────
@@ -78,10 +91,15 @@ export type ExpenseCategory =
   | "operasional_alat"
   | "lainnya";
 
+export type ExpenseDirection = "keluar" | "masuk";
+export type ExpenseSourceFund = "kas" | "bank" | "lainnya";
+
 export interface ExpenseRecord {
   id: string;
   date: string;
   category: ExpenseCategory;
+  direction: ExpenseDirection;      // arus uang: keluar / masuk
+  sourceFund: ExpenseSourceFund;    // sumber uang
   description: string;
   amount: number;         // Rp
   createdAt: string;

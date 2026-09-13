@@ -110,6 +110,9 @@ export function SalesForm() {
         customerPhone: customerPhone.trim(),
         notes: notes.trim(),
         status: "pending",
+        payStatus: "belum_lunas",
+        pickupStatus: "belum_diambil",
+        paidAmount: 0,
         items: items.map(({ it, product, qty, price }) => ({
           productCode: it.productCode,
           productName: product.name,

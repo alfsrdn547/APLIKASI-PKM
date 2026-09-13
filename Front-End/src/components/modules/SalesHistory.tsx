@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { SalesOrder, OrderStatus } from "@/types";
+import type { SalesOrder, OrderStatus, PayStatus, PickupStatus } from "@/types";
 import { ORDER_STATUSES } from "@/constants/products";
 import { useRPHStore } from "@/stores/useRPHStore";
 import { Card } from "@/components/ui/Card";
 import { Table } from "@/components/ui/Table";
-import { OrderStatusBadge, Money } from "@/components/ui/custom-badges";
+import { OrderStatusBadge, PayStatusBadge, PickupStatusBadge, Money } from "@/components/ui/custom-badges";
 import { formatShortDate } from "@/lib/utils";
 
 type SortField = "date" | "totalAmount" | "customerName";
@@ -19,6 +19,7 @@ interface SalesHistoryProps {
 export function SalesHistory({ onRowClick }: SalesHistoryProps) {
   const sales = useRPHStore((s) => s.sales);
   const updateOrderStatus = useRPHStore((s) => s.updateOrderStatus);
+  const updateOrderPayment = useRPHStore((s) => s.updateOrderPayment);
 
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -64,6 +65,29 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
     }
   };
 
+  const togglePay = async (order: SalesOrder) => {
+    try {
+      setStatusError("");
+      const next: PayStatus = order.payStatus === "lunas" ? "belum_lunas" : "lunas";
+      await updateOrderPayment(order.id, {
+        payStatus: next,
+        paidAmount: next === "lunas" ? order.totalAmount : 0,
+      });
+    } catch {
+      setStatusError("Gagal ubah status pembayaran.");
+    }
+  };
+
+  const togglePickup = async (order: SalesOrder) => {
+    try {
+      setStatusError("");
+      const next: PickupStatus = order.pickupStatus === "sudah_diambil" ? "belum_diambil" : "sudah_diambil";
+      await updateOrderPayment(order.id, { pickupStatus: next });
+    } catch {
+      setStatusError("Gagal ubah status pengambilan.");
+    }
+  };
+
   const columns = [
     {
       key: "date",
@@ -95,6 +119,48 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
       key: "totalAmount",
       header: "Total",
       render: (o: SalesOrder) => <Money value={o.totalAmount} />,
+    },
+    {
+      key: "pembayaran",
+      header: "Pembayaran",
+      render: (o: SalesOrder) => {
+        const sisa = o.totalAmount - o.paidAmount;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <PayStatusBadge status={o.payStatus} />
+              <button
+                onClick={() => togglePay(o)}
+                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                title={o.payStatus === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
+              >
+                {o.payStatus === "lunas" ? "↺" : "✓"}
+              </button>
+            </div>
+            {o.payStatus !== "lunas" && (
+              <span className="text-[11px] text-amber-600">
+                Sisa Rp {sisa.toLocaleString("id-ID")}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "pickup",
+      header: "Ambil",
+      render: (o: SalesOrder) => (
+        <div className="flex items-center gap-2">
+          <PickupStatusBadge status={o.pickupStatus} />
+          <button
+            onClick={() => togglePickup(o)}
+            className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            title={o.pickupStatus === "sudah_diambil" ? "Tandai belum diambil" : "Tandai sudah diambil"}
+          >
+            {o.pickupStatus === "sudah_diambil" ? "↺" : "✓"}
+          </button>
+        </div>
+      ),
     },
     {
       key: "status",

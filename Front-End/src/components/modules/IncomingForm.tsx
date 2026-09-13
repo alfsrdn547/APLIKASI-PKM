@@ -13,6 +13,10 @@ interface FormState {
   chickenIn: string;
   chickenDead: string;
   chickenBroken: string;
+  nopol: string;
+  tonase: string;
+  hargaPerKg: string;
+  kasbon: string;
   notes: string;
 }
 
@@ -21,6 +25,10 @@ const INITIAL: FormState = {
   chickenIn: "",
   chickenDead: "",
   chickenBroken: "",
+  nopol: "",
+  tonase: "",
+  hargaPerKg: "",
+  kasbon: "",
   notes: "",
 };
 
@@ -81,6 +89,11 @@ export function IncomingForm() {
         chickenIn: parseFloat(form.chickenIn),
         chickenDead: parseFloat(form.chickenDead || "0"),
         chickenBroken: parseFloat(form.chickenBroken || "0"),
+        nopol: form.nopol.trim(),
+        tonase: parseFloat(form.tonase || "0"),
+        hargaPerKg: parseFloat(form.hargaPerKg || "0"),
+        totalHarga: parseFloat(form.chickenIn || "0") * parseFloat(form.hargaPerKg || "0"),
+        kasbon: parseFloat(form.kasbon || "0"),
         notes: form.notes.trim(),
       });
       setForm({ ...INITIAL, date: form.date }); // keep tanggal untuk input berikutnya
@@ -143,6 +156,44 @@ export function IncomingForm() {
           value={form.chickenBroken}
           onChange={(e) => set("chickenBroken", e.target.value)}
           error={errors.chickenBroken}
+        />
+
+        <Input
+          type="text"
+          label="No. Polisi Kendaraan (opsional)"
+          placeholder="Contoh: B 1234 XX"
+          value={form.nopol}
+          onChange={(e) => set("nopol", e.target.value)}
+        />
+
+        <Input
+          type="number"
+          min={0}
+          step="any"
+          label="Tonase / Berat (kg, opsional)"
+          placeholder="Contoh: 900"
+          value={form.tonase}
+          onChange={(e) => set("tonase", e.target.value)}
+        />
+
+        <Input
+          type="number"
+          min={0}
+          step="any"
+          label="Harga per Kg (opsional)"
+          placeholder="Contoh: 38000"
+          value={form.hargaPerKg}
+          onChange={(e) => set("hargaPerKg", e.target.value)}
+        />
+
+        <Input
+          type="number"
+          min={0}
+          step="any"
+          label="Kasbon (opsional)"
+          placeholder="Contoh: 500000"
+          value={form.kasbon}
+          onChange={(e) => set("kasbon", e.target.value)}
         />
 
         <Input

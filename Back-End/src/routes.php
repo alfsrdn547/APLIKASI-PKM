@@ -24,11 +24,6 @@ function body(Request $req, array $required, array $config = []): array
     return array_replace($config['defaults'] ?? [], array_intersect_key($raw, array_flip($required)));
 }
 
-function audit(Response $req, string $entity, ?string $id, string $action, array $before, array $after, int $status): void
-{
-    // Dipanggil setelah eksekusi; $db & actor via closure scope di bawah
-}
-
 // ── Penerimaan ───────────────────────────────────────────────────────
 $app->get('/incoming', function (Request $req, Response $res) use ($db) {
     $q = $req->getQueryParams();

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { ExpenseCategory, FormErrors } from "@/types";
-import { EXPENSE_CATEGORIES } from "@/constants/products";
+import type { ExpenseCategory, ExpenseDirection, ExpenseSourceFund, FormErrors } from "@/types";
+import { EXPENSE_CATEGORIES, EXPENSE_DIRECTIONS, EXPENSE_SOURCES } from "@/constants/products";
 import { useRPHStore } from "@/stores/useRPHStore";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -14,6 +14,8 @@ import { isFutureDate, isPositive, todayISO, formatShortDate, formatRp } from "@
 interface ExpenseFormState {
   date: string;
   category: ExpenseCategory | "";
+  direction: ExpenseDirection;
+  sourceFund: ExpenseSourceFund;
   description: string;
   amount: string;
 }
@@ -26,6 +28,8 @@ export function ExpensesModule() {
   const [form, setForm] = useState<ExpenseFormState>({
     date: todayISO(),
     category: "",
+    direction: "keluar",
+    sourceFund: "kas",
     description: "",
     amount: "",
   });
@@ -64,6 +68,8 @@ export function ExpensesModule() {
       await addExpense({
         date: form.date,
         category: form.category as ExpenseCategory,
+        direction: form.direction,
+        sourceFund: form.sourceFund,
         description: form.description.trim(),
         amount: parseFloat(form.amount),
       });
