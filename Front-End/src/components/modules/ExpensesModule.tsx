@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Table } from "@/components/ui/Table";
+import { Badge } from "@/components/ui/Badge";
 import { ExpenseCategoryBadge, Money } from "@/components/ui/custom-badges";
 import { isFutureDate, isPositive, todayISO, formatShortDate, formatRp } from "@/lib/utils";
 
@@ -102,6 +103,22 @@ export function ExpensesModule() {
       ),
     },
     {
+      key: "direction",
+      header: "Arah",
+      render: (r: (typeof filtered)[0]) => (
+        <Badge variant={r.direction === "masuk" ? "success" : "danger"}>
+          {r.direction === "masuk" ? "Masuk" : "Keluar"}
+        </Badge>
+      ),
+    },
+    {
+      key: "sourceFund",
+      header: "Sumber",
+      render: (r: (typeof filtered)[0]) => (
+        <span className="text-sm text-gray-500 capitalize">{r.sourceFund}</span>
+      ),
+    },
+    {
       key: "description",
       header: "Keterangan",
       render: (r: (typeof filtered)[0]) => r.description,
@@ -150,6 +167,34 @@ export function ExpensesModule() {
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
               error={errors.date}
             />
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">
+                Arah Arus
+              </label>
+              <select
+                className="w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                value={form.direction}
+                onChange={(e) => setForm((f) => ({ ...f, direction: e.target.value as ExpenseDirection }))}
+              >
+                {EXPENSE_DIRECTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>{d.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">
+                Sumber Uang
+              </label>
+              <select
+                className="w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                value={form.sourceFund}
+                onChange={(e) => setForm((f) => ({ ...f, sourceFund: e.target.value as ExpenseSourceFund }))}
+              >
+                {EXPENSE_SOURCES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">
                 Kategori
