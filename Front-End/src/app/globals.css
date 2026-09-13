@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ────────────────────────────────────────────────
+   Print — Invoice 2 Rangkap (A4)
+   Strategi: sembunyikan semua, tampilkan hanya .print-2up
+   ──────────────────────────────────────────────── */
+@page {
+  size: A4;
+  margin: 9mm;
+}
+
+/* Layar: area cetak disembunyikan */
+.print-2up {
+  display: none;
+}
+
+@media print {
+  /* Sembunyikan seluruh app */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Hanya area cetak yang terlihat */
+  .print-2up,
+  .print-2up * {
+    visibility: visible;
+  }
+  .print-2up {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Setiap rangkap = satu halaman */
+  .invoice-sheet {
+    width: 100%;
+    margin: 0;
+    padding: 10px 0;
+  }
+  .invoice-sheet:first-of-type {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* Garis potong antar copy (tampil pada halaman pertama) */
+  .print-cut-line {
+    display: none;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   Nuansa layar (opsional)
+   ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
