@@ -63,3 +63,34 @@
   background: #cbd5e1;
   border-radius: 4px;
 }
+/* ────────────────────────────────────────────────
+   Print: laporan rekap (ExportModal)
+   Saat body pakai .printing-report, sembunyikan
+   seluruh UI, tampilkan hanya .print-report-sheet.
+   ──────────────────────────────────────────────── */
+body.printing-report * {
+  visibility: hidden;
+}
+body.printing-report .print-report-sheet,
+body.printing-report .print-report-sheet * {
+  visibility: visible;
+}
+body.printing-report .print-report-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: block !important;
+  padding: 8mm;
+  box-sizing: border-box;
+}
+body.printing-report .print-report-sheet .print-report-header {
+  margin-bottom: 4mm;
+  text-align: center;
+}
+body.printing-report .print-report-sheet table {
+  font-size: 11px;
+}
+body.printing-report {
+  background: #fff !important;
+}

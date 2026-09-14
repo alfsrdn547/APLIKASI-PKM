@@ -57,21 +57,36 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
     URL.revokeObjectURL(url);
   };
 
+  const csvEscape = (v: string) => {
+    // Quote jika mengandung delimiter, quote, atau newline; double-pair quote.
+    if (/[",\n]/.test(v)) return `"${v.replace(/"/g, '""')}"`;
+    return v;
+  };
+
   const handleExport = () => {
     if (format === "csv") {
       const header = Object.keys(rows[0] || {}).join(",");
       const body = rows
-        .map((r) =>
-          Object.values(r)
-            .map((v) => `"${v}"`)
-            .join(",")
-        )
+        .map((r) => Object.values(r).map((v) => csvEscape(String(v))).join(","))
         .join("\n");
-      download(`${header}\n${body}`, `laporan-rph-${range}.csv`, "text/csv;charset=utf-8");
+      // BOM UTF-8 (﻿) supaya kolom terbaca benar di Excel
+      download(`﻿${header}\n${body}`, `laporan-rph-${range}.csv`, "text/csv;charset=utf-8");
     } else if (format === "json") {
       download(JSON.stringify(rows, null, 2), `laporan-rph-${range}.json`, "application/json");
     } else {
-      window.print();
+      // Print khusus area laporan (bukan seluruh halaman)
+      document.body.classList.add("printing-report");
+      const before = document.title;
+      document.title = `Laporan RPH ${range === "7d" ? "7 Hari" : range === "14d" ? "14 Hari" : "30 Hari"}`;
+      // Microtask: biar class ter-apply dulu sebelum print.
+      // JANGAN tutup modal dulu — .print-report-sheet ada di dalamnya.
+      requestAnimationFrame(() => {
+        window.print();
+        document.body.classList.remove("printing-report");
+        document.title = before;
+        onClose();
+      });
+      return;
     }
     onClose();
   };
@@ -158,6 +173,45 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
                 Rp {rows.reduce((a, r) => a + r.pengeluaran, 0).toLocaleString("id-ID")}
               </span>
             </div>
+          </div>
+
+          {/* Tabel rekap penuh — tampil di print (print-report-sheet) */}
+          <div className="print-report-sheet hidden">
+            <div className="print-report-header">
+              <h2 className="text-lg font-bold">Laporan Rekapitulasi Harian — RPH</h2>
+              <p className="text-sm text-gray-500">
+                Rentang {range === "7d" ? "7 hari" : range === "14d" ? "14 hari" : "30 hari"} · Dicetak{" "}
+                {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            </div>
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="border px-2 py-1 text-left">Tanggal</th>
+                  <th className="border px-2 py-1 text-right">Ayam Masuk</th>
+                  <th className="border px-2 py-1 text-right">Ayam Mati</th>
+                  <th className="border px-2 py-1 text-right">Produksi Bersih</th>
+                  <th className="border px-2 py-1 text-right">Transaksi</th>
+                  <th className="border px-2 py-1 text-right">Omset</th>
+                  <th className="border px-2 py-1 text-right">Pengeluaran</th>
+                  <th className="border px-2 py-1 text-right">Laba</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.tanggal}>
+                    <td className="border px-2 py-1">{r.tanggal}</td>
+                    <td className="border px-2 py-1 text-right">{r.ayam_masuk}</td>
+                    <td className="border px-2 py-1 text-right">{r.ayam_mati}</td>
+                    <td className="border px-2 py-1 text-right">{r.produksi_bersih}</td>
+                    <td className="border px-2 py-1 text-right">{r.jumlah_transaksi}</td>
+                    <td className="border px-2 py-1 text-right">Rp {r.omset.toLocaleString("id-ID")}</td>
+                    <td className="border px-2 py-1 text-right">Rp {r.pengeluaran.toLocaleString("id-ID")}</td>
+                    <td className="border px-2 py-1 text-right">Rp {r.laba.toLocaleString("id-ID")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
