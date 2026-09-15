@@ -56,24 +56,30 @@ $app->addBodyParsingMiddleware();
 
 // ── Routes ───────────────────────────────────────────────────────────
 $app->get('/products', function (Request $req, Response $res) {
+    // 17 kode PRD — sync dgn Front-End/src/constants/products.ts
     $products = [
-        ['code' => 'PC',   'name' => 'Ayam Potong Bersih', 'unit' => 'kg', 'category' => 'karkas'],
-        ['code' => 'KRKS', 'name' => 'Karkas Utuh',        'unit' => 'kg', 'category' => 'karkas'],
-        ['code' => 'BLD',  'name' => 'Bulat Utuh',         'unit' => 'kg', 'category' => 'karkas'],
-        ['code' => 'DAD',  'name' => 'Dada Fillet',        'unit' => 'kg', 'category' => 'potongan'],
-        ['code' => 'PAH',  'name' => 'Paha Atas + Bawah',  'unit' => 'kg', 'category' => 'potongan'],
-        ['code' => 'SAY',  'name' => 'Sayap Utuh',         'unit' => 'kg', 'category' => 'potongan'],
-        ['code' => 'FIL',  'name' => 'Fillet Dada',        'unit' => 'kg', 'category' => 'fillet'],
-        ['code' => 'GLG',  'name' => 'Gelonggong / Back',  'unit' => 'kg', 'category' => 'lainnya'],
-        ['code' => 'CKR',  'name' => 'Ceker / Feet',       'unit' => 'kg', 'category' => 'lainnya'],
-        ['code' => 'KPL',  'name' => 'Kepala',             'unit' => 'ekor', 'category' => 'organ'],
-        ['code' => 'ATI',  'name' => 'Ati / Hati',         'unit' => 'kg', 'category' => 'organ'],
-        ['code' => 'AMP',  'name' => 'Ampela',             'unit' => 'kg', 'category' => 'organ'],
+        ['code'=>'PC','name'=>'Ayam Utuh Parting/Potong','unit'=>'kg','category'=>'ayam_utuh'],
+        ['code'=>'KRKS','name'=>'Karkas Utuh','unit'=>'kg','category'=>'ayam_utuh'],
+        ['code'=>'BLD','name'=>'Boneless Dada','unit'=>'kg','category'=>'daging'],
+        ['code'=>'BLD-K','name'=>'Boneless Dada Kulit','unit'=>'kg','category'=>'daging'],
+        ['code'=>'BLP','name'=>'Boneless Paha','unit'=>'kg','category'=>'daging'],
+        ['code'=>'BLP-K','name'=>'Boneless Paha Kulit','unit'=>'kg','category'=>'daging'],
+        ['code'=>'PAHA-P','name'=>'Paha (P)','unit'=>'kg','category'=>'daging'],
+        ['code'=>'PAHA-U','name'=>'Paha (U)','unit'=>'kg','category'=>'daging'],
+        ['code'=>'PAHA-A','name'=>'Paha (A)','unit'=>'kg','category'=>'daging'],
+        ['code'=>'SAYAP-B','name'=>'Sayap (B)','unit'=>'kg','category'=>'daging'],
+        ['code'=>'SAYAP-R','name'=>'Sayap (R)','unit'=>'kg','category'=>'daging'],
+        ['code'=>'CKR','name'=>'Cakar','unit'=>'kg','category'=>'sampingan'],
+        ['code'=>'KPL','name'=>'Kepala','unit'=>'ekor','category'=>'sampingan'],
+        ['code'=>'KULIT','name'=>'Kulit','unit'=>'kg','category'=>'sampingan'],
+        ['code'=>'USUS','name'=>'Usus','unit'=>'kg','category'=>'sampingan'],
+        ['code'=>'ATI','name'=>'Ati','unit'=>'kg','category'=>'sampingan'],
+        ['code'=>'TULANG','name'=>'Tulang','unit'=>'kg','category'=>'sampingan'],
     ];
     $res->getBody()->write(json_encode([
         'products' => $products,
-        'defaultPrices' => ['PC'=>38000,'KRKS'=>36000,'BLD'=>37000,'DAD'=>45000,'PAH'=>40000,'SAY'=>25000,'FIL'=>55000,'GLG'=>15000,'CKR'=>20000,'KPL'=>10000,'ATI'=>25000,'AMP'=>22000],
-        'butcheryDistribution' => ['PC'=>0.55,'KRKS'=>0.55,'BLD'=>0.55,'DAD'=>0.18,'PAH'=>0.15,'SAY'=>0.08,'FIL'=>0.06,'GLG'=>0.10,'CKR'=>0.04,'KPL'=>1,'ATI'=>0.02,'AMP'=>0.015],
+        'defaultPrices' => ['PC'=>38000,'KRKS'=>36000,'BLD'=>45000,'BLD-K'=>46000,'BLP'=>40000,'BLP-K'=>41000,'PAHA-P'=>40000,'PAHA-U'=>39000,'PAHA-A'=>38000,'SAYAP-B'=>25000,'SAYAP-R'=>24000,'CKR'=>20000,'KPL'=>10000,'KULIT'=>15000,'USUS'=>12000,'ATI'=>25000,'TULANG'=>8000],
+        'butcheryDistribution' => ['PC'=>0.55,'KRKS'=>0.55,'BLD'=>0.18,'BLD-K'=>0.15,'BLP'=>0.15,'BLP-K'=>0.12,'PAHA-P'=>0.06,'PAHA-U'=>0.05,'PAHA-A'=>0.05,'SAYAP-B'=>0.04,'SAYAP-R'=>0.04,'CKR'=>0.04,'KPL'=>1,'KULIT'=>0.06,'USUS'=>0.03,'ATI'=>0.02,'TULANG'=>0.05],
         'avgWeightPerEkor' => 1.8,
     ]));
     return $res->withHeader('Content-Type', 'application/json');

@@ -149,7 +149,7 @@ $app->get('/sales', function (Request $req, Response $res) use ($db) {
     if (!empty($q['from'])) $f['date'] = 'gte.' . $q['from'];
     if (!empty($q['to']))   $f['date'] = 'lte.' . $q['to'];
     if (!empty($q['status'])) $f['status'] = 'eq.' . $q['status'];
-    [$data] = $db->select('sales', $f, ['order' => 'date.asc']);
+    [$data] = $db->select('sales', $f, ['order' => 'date.asc', 'select' => '*,sales_items(*)']);
     return json($res, $data);
 });
 
@@ -194,7 +194,6 @@ $app->post('/sales', function (Request $req, Response $res) use ($db) {
         'date' => $b['date'],
         'customer_name' => trim($b['customerName']),
         'customer_phone' => $b['customerPhone'],
-        'items' => $items,
         'total_amount' => $total,
         'status' => $b['status'] ?? 'pending',
         'pay_status' => $b['payStatus'],
@@ -202,6 +201,27 @@ $app->post('/sales', function (Request $req, Response $res) use ($db) {
         'paid_amount' => (float)$b['paidAmount'],
         'notes' => $b['notes'],
     ]);
+    // Insert sales_items (child) utk tiap item — rollback sales jika gagal
+    if ($s <= 299 && !empty($row[0]['id'])) {
+        $salesId = $row[0]['id'];
+        foreach ($items as $it) {
+            [$si, $sSi] = $db->insert('sales_items', [
+                'sales_id'     => $salesId,
+                'product_code' => $it['productCode'],
+                'product_name' => $it['productName'],
+                'quantity'     => $it['quantity'],
+                'unit_price'   => $it['unitPrice'],
+                'subtotal'     => round($it['quantity'] * $it['unitPrice'], 2), // fallback; trigger overwrite jika ada
+            ]);
+            if ($sSi >= 400) {
+                $db->delete('sales', $salesId);   // rollback
+                throw new ApiException('DB_ERROR', 'Gagal simpan item penjualan', [], $sSi);
+            }
+        }
+        // reload sales dengan total_amount dari trigger
+        [$updated] = $db->select('sales', ['id' => 'eq.' . $salesId]);
+        $row[0] = $updated[0] ?? $row[0];
+    }
     if ($s >= 400) throw new ApiException('DB_ERROR', 'Gagal simpan penjualan', [], $s);
     AuditLog::write($db, $req->getAttribute('actor'), 'POST', '/sales', 'sales', $row[0]['id'] ?? null, 'create', [], $row[0] ?? [], $s, $req->getServerParams()['REMOTE_ADDR'] ?? null);
     return json($res, $row[0], 201);

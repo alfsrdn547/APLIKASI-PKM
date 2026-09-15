@@ -45,23 +45,44 @@ const toIncomingRow = (r: Omit<IncomingRecord, "id" | "createdAt">) => ({
   notes: r.notes,
 });
 
+interface SalesItemRow {
+  id: string; sales_id: string; product_code: string; product_name: string;
+  quantity: number; unit_price: number; subtotal: number; created_at: string;
+}
+
 interface SalesRow {
   id: string; date: string; customer_name: string; customer_phone: string;
-  items: any[]; total_amount: number; status: string; notes: string; created_at: string;
+  total_amount: number; status: string; notes: string; created_at: string;
   pay_status: string; pickup_status: string; paid_amount: number;
+  sales_items?: SalesItemRow[];
 }
-const mapSales = (r: SalesRow): SalesOrder => ({
-  id: r.id, date: r.date.slice(0, 10), customerName: r.customer_name,
-  customerPhone: r.customer_phone, items: r.items, totalAmount: r.total_amount,
-  status: r.status as OrderStatus,
-  payStatus: (r.pay_status as PayStatus) || "belum_lunas",
-  pickupStatus: (r.pickup_status as PickupStatus) || "belum_diambil",
-  paidAmount: r.paid_amount || 0,
-  notes: r.notes, createdAt: r.created_at,
-});
-const toSalesRow = (r: Omit<SalesOrder, "id" | "createdAt" | "totalAmount">) => ({
+
+const mapSales = (r: SalesRow): SalesOrder => {
+  const items = (r.sales_items ?? []).map((si) => {
+    const product = PRODUCTS.find((p) => p.code === si.product_code);
+    return {
+      productCode: si.product_code,
+      productName: si.product_name || product?.name || si.product_code,
+      quantity: si.quantity,
+      unit: (product?.unit ?? "kg") as "kg" | "ekor",
+      unitPrice: si.unit_price,
+      subtotal: si.subtotal,
+    };
+  });
+  return {
+    id: r.id, date: r.date.slice(0, 10), customerName: r.customer_name,
+    customerPhone: r.customer_phone, items, totalAmount: r.total_amount,
+    status: r.status as OrderStatus,
+    payStatus: (r.pay_status as PayStatus) || "belum_lunas",
+    pickupStatus: (r.pickup_status as PickupStatus) || "belum_diambil",
+    paidAmount: r.paid_amount || 0,
+    notes: r.notes, createdAt: r.created_at,
+  };
+};
+
+const toSalesRow = (r: Omit<SalesOrder, "id" | "createdAt" | "totalAmount" | "items">) => ({
   date: r.date, customer_name: r.customerName, customer_phone: r.customerPhone,
-  items: r.items, total_amount: 0, status: r.status, notes: r.notes,
+  total_amount: 0, status: r.status, notes: r.notes,
   pay_status: r.payStatus, pickup_status: r.pickupStatus, paid_amount: r.paidAmount,
 });
 
@@ -108,7 +129,6 @@ interface RPHState {
 
   // Modul 1 actions
   addIncoming: (rec: Omit<IncomingRecord, "id" | "createdAt">) => Promise<void>;
-  removeIncoming: (id: string) => Promise<void>;
 
   // Modul 2 — Pemotongan
   addButchery: (rec: Omit<ButcheryRecord, "id" | "createdAt">) => Promise<void>;
@@ -132,13 +152,10 @@ interface RPHState {
 
   // Modul 4 — computed
   getDailySummaries: () => DailySummaryRow[];
-  getMonthlySummary: (month: string) => DailySummaryRow[];
   getStockForDate: (productCode: string, date: string) => StockInfo;
 }
 
 // ─── Computed types ──────────────────────────────────────────────────
-export type { DailySummaryRow };
-
 interface StockInfo {
   opening: number;
   incoming: number;
@@ -161,7 +178,7 @@ export const useRPHStore = create<RPHState>((set, get) => ({
     try {
       const [inc, sal, exp, but] = await Promise.all([
         supabase.from("incoming").select("*").order("date", { ascending: true }),
-        supabase.from("sales").select("*").order("date", { ascending: true }),
+        supabase.from("sales").select("*,sales_items(*)").order("date", { ascending: true }),
         supabase.from("expenses").select("*").order("date", { ascending: true }),
         supabase.from("butchery").select("*").order("date", { ascending: true }),
       ]);
@@ -191,12 +208,6 @@ export const useRPHStore = create<RPHState>((set, get) => ({
     if (error) throw new Error(error.message);
     const inserted = data as unknown as IncomingRow;
     set((s) => ({ incoming: [...s.incoming, mapIncoming(inserted)] }));
-  },
-
-  removeIncoming: async (id) => {
-    const { error } = await supabase.from("incoming").delete().eq("id", id);
-    if (error) throw new Error(error.message);
-    set((s) => ({ incoming: s.incoming.filter((i) => i.id !== id) }));
   },
 
   // ── Modul 2: Pemotongan ──────────────────────────────────────────
@@ -261,16 +272,41 @@ export const useRPHStore = create<RPHState>((set, get) => ({
 
   // ── Modul 3: Penjualan ──────────────────────────────────────────
   addSalesOrder: async (order) => {
-    const totalAmount = order.items.reduce((a, i) => a + i.subtotal, 0);
-    const now = new Date();
-    const { data, error } = await supabase
+    // 1. Insert sales row (tanpa items jsonb — items di child table)
+    const { data: salesRow, error: salesErr } = await supabase
       .from("sales")
-      .insert({ ...toSalesRow(order), total_amount: totalAmount })
+      .insert(toSalesRow(order))
       .select()
       .single();
-    if (error) throw new Error(error.message);
-    const inserted = data as unknown as SalesRow;
-    set((s) => ({ sales: [...s.sales, mapSales(inserted)] }));
+    if (salesErr) throw new Error(salesErr.message);
+    const inserted = salesRow as unknown as SalesRow;
+
+    // 2. Insert sales_items (bulk) — rollback sales jika gagal
+    const itemRows = order.items.map((it) => ({
+      sales_id: inserted.id,
+      product_code: it.productCode,
+      product_name: it.productName,
+      quantity: it.quantity,
+      unit_price: it.unitPrice,
+    }));
+    const { error: itemsErr } = await supabase
+      .from("sales_items")
+      .insert(itemRows);
+    if (itemsErr) {
+      // Rollback: hapus sales yang baru dibuat
+      await supabase.from("sales").delete().eq("id", inserted.id);
+      throw new Error(itemsErr.message);
+    }
+
+    // 3. Reload sales dengan embed items supaya state konsisten
+    const { data: fullSales } = await supabase
+      .from("sales")
+      .select("*,sales_items(*)")
+      .eq("id", inserted.id)
+      .single();
+    if (fullSales) {
+      set((s) => ({ sales: [...s.sales, mapSales(fullSales as unknown as SalesRow)] }));
+    }
   },
 
   updateOrderStatus: async (id, status) => {
@@ -355,12 +391,6 @@ export const useRPHStore = create<RPHState>((set, get) => ({
         profit: totalRevenue - totalExpenses,
       };
     });
-  },
-
-  getMonthlySummary: (month: string): DailySummaryRow[] => {
-    return get()
-      .getDailySummaries()
-      .filter((s) => s.date.startsWith(month));
   },
 
   getStockForDate: (productCode: string, date: string): StockInfo => {

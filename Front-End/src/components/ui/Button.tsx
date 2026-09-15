@@ -3,8 +3,8 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "danger" | "ghost" | "outline";
-type Size = "sm" | "md" | "lg";
+type Variant = "primary" | "ghost" | "outline";
+type Size = "sm" | "md";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -15,8 +15,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm",
-  secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300",
-  danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm",
   ghost: "text-gray-600 hover:bg-gray-100 active:bg-gray-200",
   outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100",
 };
@@ -24,7 +22,6 @@ const VARIANTS: Record<Variant, string> = {
 const SIZES: Record<Size, string> = {
   sm: "px-3 py-1.5 text-sm rounded-lg",
   md: "px-4 py-2 text-sm rounded-lg",
-  lg: "px-6 py-2.5 text-base rounded-xl",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

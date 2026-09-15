@@ -39,6 +39,7 @@ class Supabase
         if (!empty($opt['order'])) $q['order'] = $opt['order'];
         if (!empty($opt['limit'])) $q['limit'] = $opt['limit'];
         if (!empty($opt['offset'])) $q['offset'] = $opt['offset'];
+        if (!empty($opt['select'])) $q['select'] = $opt['select'];
         $r = $this->http->get($this->base . '/' . $table, ['query' => $q]);
         return [json_decode($r->getBody(), true), $r->getStatusCode()];
     }
@@ -64,12 +65,5 @@ class Supabase
             'query' => ['id' => 'eq.' . $id],
         ]);
         return [null, $r->getStatusCode()];
-    }
-
-    /** RPC (Postgres function) — utk operasi atomik seperti create_sale */
-    public function rpc(string $fn, array $payload): array
-    {
-        $r = $this->http->post($this->base . '/rpc/' . $fn, ['json' => $payload]);
-        return [json_decode($r->getBody(), true), $r->getStatusCode()];
     }
 }

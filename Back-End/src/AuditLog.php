@@ -29,13 +29,4 @@ class AuditLog
             'ip'          => $ip,
         ]);
     }
-
-    /** Ambil actor dari klaim JWT (sub/email) atau api-key. */
-    public static function resolveActor(array $server): string
-    {
-        $key = $server['HTTP_X_API_KEY'] ?? null;
-        if ($key) return 'apikey:' . substr($key, 0, 8);
-        // Bearer => dari token (diparse di auth middleware); fallback generic
-        return $server['HTTP_X_ACTOR'] ?? 'anonymous';
-    }
 }

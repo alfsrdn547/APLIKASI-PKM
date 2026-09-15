@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import type { SalesOrder } from "@/types";
-import { useRPHStore } from "@/stores/useRPHStore";
 import { SalesForm } from "@/components/modules/SalesForm";
 import { SalesHistory } from "@/components/modules/SalesHistory";
 import { InvoicePrint } from "@/components/modules/InvoicePrint";
 
 export default function PenjualanPage() {
   const [printOrder, setPrintOrder] = useState<SalesOrder | null>(null);
-  const sales = useRPHStore((s) => s.sales);
 
   const handleRowClick = (row: SalesOrder) => {
     if (row.status === "completed" || row.status === "processing") {

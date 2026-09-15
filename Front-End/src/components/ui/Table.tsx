@@ -8,7 +8,6 @@ interface Column<T> {
   header: string;
   className?: string;
   render?: (row: T, index: number) => ReactNode;
-  accessor?: (row: T) => ReactNode;
 }
 
 interface TableProps<T> {
@@ -70,11 +69,7 @@ export function Table<T>({
                       col.className
                     )}
                   >
-                    {col.render
-                      ? col.render(row, i)
-                      : col.accessor
-                      ? col.accessor(row)
-                      : "-"}
+                    {col.render ? col.render(row, i) : "-"}
                   </td>
                 ))}
               </tr>

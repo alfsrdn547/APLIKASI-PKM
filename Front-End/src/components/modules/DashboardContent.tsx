@@ -43,7 +43,6 @@ export function DashboardContent() {
   const [exportOpen, setExportOpen] = useState(false);
 
   const summaries = useMemo(() => getDailySummaries(), [getDailySummaries]);
-  const last = summaries[summaries.length - 1];
   const prev = summaries[summaries.length - 2];
 
   const totals = useMemo(() => {

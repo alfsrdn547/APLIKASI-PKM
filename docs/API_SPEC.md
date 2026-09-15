@@ -74,8 +74,8 @@ Status: `200` OK · `201` Created · `204` No Content · `400` validasi · `401`
 
 | Method & Path | Body / Params | Success | Catatan |
 |---|---|---|---|
-| `GET /sales` | `?from=&to=&customer=&status=` | `200` array | |
-| `POST /sales` | `{date, customerName, customerPhone?, items:[{productCode, productName, quantity, unitPrice}], notes, status?, payStatus? (lunas/belum_lunas), pickupStatus? (sudah/belum_diambil), paidAmount?}` | `201` record | `totalAmount` **dihitung server**; stock check |
+| `GET /sales` | `?from=&to=&customer=&status=` | `200` array (embed `sales_items`) | |
+| `POST /sales` | `{date, customerName, customerPhone?, items:[{productCode, productName, quantity, unitPrice}], notes, status?, payStatus? (lunas/belum_lunas), pickupStatus? (sudah/belum_diambil), paidAmount?}` | `201` record | `items` disimpan ke child table `sales_items` (bukan jsonb); `totalAmount` dihitung server/trigger; stock check |
 | `PATCH /sales/{id}/status` | `{status}` | `200` | status enum `pending/processing/completed/cancelled` |
 | `DELETE /sales/{id}` | – | `204` | (opsional; buang stock dulu) |
 
