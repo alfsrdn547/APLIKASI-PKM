@@ -59,7 +59,7 @@ Status: `200` OK · `201` Created · `204` No Content · `400` validasi · `401`
 | Method & Path | Body / Params | Success | Catatan |
 |---|---|---|---|
 | `GET /incoming` | query `?from=&to=&limit=&offset=` | `200` array | urut `date asc` |
-| `POST /incoming` | `{date, chickenIn, chickenDead, chickenBroken, notes}` | `201` record | validasi di bawah |
+| `POST /incoming` | `{date, chickenIn, chickenDead, chickenBroken, nopol?, tonase?, hargaPerKg?, kasbon?, notes}` | `201` record | `total_harga` dihitung server: `chickenIn × hargaPerKg` |
 | `DELETE /incoming/{id}` | – | `204` | |
 
 ### Pemotongan (`butchery`)
@@ -75,7 +75,7 @@ Status: `200` OK · `201` Created · `204` No Content · `400` validasi · `401`
 | Method & Path | Body / Params | Success | Catatan |
 |---|---|---|---|
 | `GET /sales` | `?from=&to=&customer=&status=` | `200` array | |
-| `POST /sales` | `{date, customerName, customerPhone?, items:[{productCode, productName, quantity, unitPrice}], notes, status?}` | `201` record | `totalAmount` **dihitung server**; stock check |
+| `POST /sales` | `{date, customerName, customerPhone?, items:[{productCode, productName, quantity, unitPrice}], notes, status?, payStatus? (lunas/belum_lunas), pickupStatus? (sudah/belum_diambil), paidAmount?}` | `201` record | `totalAmount` **dihitung server**; stock check |
 | `PATCH /sales/{id}/status` | `{status}` | `200` | status enum `pending/processing/completed/cancelled` |
 | `DELETE /sales/{id}` | – | `204` | (opsional; buang stock dulu) |
 
@@ -84,7 +84,7 @@ Status: `200` OK · `201` Created · `204` No Content · `400` validasi · `401`
 | Method & Path | Body / Params | Success | Catatan |
 |---|---|---|---|
 | `GET /expenses` | `?from=&to=&category=` | `200` array | |
-| `POST /expenses` | `{date, category, description, amount}` | `201` record | |
+| `POST /expenses` | `{date, category, description, amount, direction? (keluar/masuk), sourceFund? (kas/bank/lainnya)}` | `201` record | default direction=keluar, sourceFund=kas |
 | `DELETE /expenses/{id}` | – | `204` | |
 
 ---

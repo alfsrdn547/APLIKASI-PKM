@@ -24,6 +24,29 @@ function body(Request $req, array $required, array $config = []): array
     return array_replace($config['defaults'] ?? [], array_intersect_key($raw, array_flip($required)));
 }
 
+/** Muat product_catalog dari Supabase (single source kode + harga). */
+function loadCatalog(object $db): array
+{
+    // fallback harga default (sama dengan FE src/constants/products.ts)
+    $basePrices = [
+        'PC'=>38000, 'KRKS'=>36000, 'BLD'=>45000, 'BLD-K'=>46000, 'BLP'=>40000,
+        'BLP-K'=>41000, 'PAHA-P'=>40000, 'PAHA-U'=>39000, 'PAHA-A'=>38000,
+        'SAYAP-B'=>25000, 'SAYAP-R'=>24000, 'CKR'=>20000, 'KPL'=>10000,
+        'KULIT'=>15000, 'USUS'=>12000, 'ATI'=>25000, 'TULANG'=>8000,
+    ];
+    [$rows] = $db->select('product_catalog', [], ['order' => 'code.asc']);
+    $catalog = [];
+    foreach ($rows ?? [] as $r) {
+        $catalog[$r['code']] = [
+            'code'   => $r['code'],
+            'name'   => $r['name'] ?? $r['code'],
+            'unit'   => $r['unit'] ?? 'kg',
+            'price'  => isset($basePrices[$r['code']]) ? $basePrices[$r['code']] : 0,
+        ];
+    }
+    return $catalog;
+}
+
 // ── Penerimaan ───────────────────────────────────────────────────────
 $app->get('/incoming', function (Request $req, Response $res) use ($db) {
     $q = $req->getQueryParams();
@@ -38,15 +61,24 @@ $app->get('/incoming', function (Request $req, Response $res) use ($db) {
 });
 
 $app->post('/incoming', function (Request $req, Response $res) use ($db) {
-    $b = body($req, ['date', 'chickenIn', 'chickenDead', 'chickenBroken']);
+    $b = body($req, ['date', 'chickenIn', 'chickenDead', 'chickenBroken'], [
+        'defaults' => ['nopol' => '', 'tonase' => 0, 'hargaPerKg' => 0, 'kasbon' => 0],
+    ]);
     if ($err = Validator::assertNotFuture($b['date'])) Validator::fail400(['date' => $err]);
     if ($b['chickenDead'] > $b['chickenIn']) Validator::fail400(['chickenDead' => 'Ayam mati melebihi ayam masuk']);
     if ($b['chickenBroken'] > $b['chickenIn']) Validator::fail400(['chickenBroken' => 'Cacat melebihi ayam masuk']);
+    $ekor = (int)$b['chickenIn'];
+    $harga = (float)$b['hargaPerKg'];
     [$row, $s] = $db->insert('incoming', [
         'date' => $b['date'],
-        'chicken_in' => (int)$b['chickenIn'],
+        'chicken_in' => $ekor,
         'chicken_dead' => (int)$b['chickenDead'],
         'chicken_broken' => (int)$b['chickenBroken'],
+        'nopol' => $b['nopol'],
+        'tonase_kg' => (float)$b['tonase'],
+        'harga_per_kg' => $harga,
+        'total_harga' => round($ekor * $harga, 2),   // PRD: ekor × harga/kg
+        'kasbon' => (float)$b['kasbon'],
         'notes' => $b['notes'] ?? '',
     ]);
     if ($s >= 400) throw new ApiException('DB_ERROR', 'Gagal simpan penerimaan', [], $s);
@@ -80,11 +112,14 @@ $app->post('/butchery', function (Request $req, Response $res) use ($db) {
     if ((int)$b['chickenCount'] < 1) Validator::fail400(['chickenCount' => 'Minimal 1 ekor']);
     $parts = array_values(array_filter($b['parts'], fn($p) => (float)($p['qtyKg'] ?? 0) > 0));
     if (!$parts) Validator::fail400(['parts' => 'Minimal 1 bagian dengan qty > 0']);
-    // validate productCode ada & unit kg (list konstan)
-    $allowed = ['PC','KRKS','BLD','DAD','PAH','SAY','FIL','GLG','CKR','ATI','AMP'];
+    // Validasi kode produk dari product_catalog (single source, 17 PRD)
+    $catalog = loadCatalog($db);
     foreach ($parts as $p) {
-        if (!in_array($p['productCode'], $allowed, true))
-            Validator::fail400(["parts.{$p['productCode']}" => 'Kode produk tidak dikenal']);
+        $code = $p['productCode'];
+        if (!isset($catalog[$code]))
+            Validator::fail400(["parts.{$code}" => 'Kode produk tidak dikenal']);
+        if (($catalog[$code]['unit'] ?? 'kg') !== 'kg')
+            Validator::fail400(["parts.{$code}" => 'Hanya produk kg yang bisa dipotong']);
     }
     [$row, $s] = $db->insert('butchery', [
         'date' => $b['date'],
@@ -119,10 +154,20 @@ $app->get('/sales', function (Request $req, Response $res) use ($db) {
 });
 
 $app->post('/sales', function (Request $req, Response $res) use ($db) {
-    $b = body($req, ['date', 'customerName', 'items']);
+    $b = body($req, ['date', 'customerName', 'items'], [
+        'defaults' => [
+            'customerPhone' => '',
+            'notes' => '',
+            'payStatus' => 'belum_lunas',
+            'pickupStatus' => 'belum_diambil',
+            'paidAmount' => 0,
+        ],
+    ]);
     if ($err = Validator::assertNotFuture($b['date'])) Validator::fail400(['date' => $err]);
     if (trim($b['customerName']) === '') Validator::fail400(['customerName' => 'Wajib diisi']);
     if (empty($b['items']) || !is_array($b['items'])) Validator::fail400(['items' => 'Minimal 1 item']);
+    if (!in_array($b['payStatus'], ['lunas', 'belum_lunas'], true)) Validator::fail400(['payStatus' => 'Status bayar tidak valid']);
+    if (!in_array($b['pickupStatus'], ['sudah_diambil', 'belum_diambil'], true)) Validator::fail400(['pickupStatus' => 'Status ambil tidak valid']);
 
     // totalAmount & subtotal dihitung SERVER (abaikan dari client)
     $items = [];
@@ -148,11 +193,14 @@ $app->post('/sales', function (Request $req, Response $res) use ($db) {
     [$row, $s] = $db->insert('sales', [
         'date' => $b['date'],
         'customer_name' => trim($b['customerName']),
-        'customer_phone' => $b['customerPhone'] ?? '',
+        'customer_phone' => $b['customerPhone'],
         'items' => $items,
         'total_amount' => $total,
         'status' => $b['status'] ?? 'pending',
-        'notes' => $b['notes'] ?? '',
+        'pay_status' => $b['payStatus'],
+        'pickup_status' => $b['pickupStatus'],
+        'paid_amount' => (float)$b['paidAmount'],
+        'notes' => $b['notes'],
     ]);
     if ($s >= 400) throw new ApiException('DB_ERROR', 'Gagal simpan penjualan', [], $s);
     AuditLog::write($db, $req->getAttribute('actor'), 'POST', '/sales', 'sales', $row[0]['id'] ?? null, 'create', [], $row[0] ?? [], $s, $req->getServerParams()['REMOTE_ADDR'] ?? null);
@@ -194,15 +242,21 @@ $app->get('/expenses', function (Request $req, Response $res) use ($db) {
 });
 
 $app->post('/expenses', function (Request $req, Response $res) use ($db) {
-    $b = body($req, ['date', 'category', 'description', 'amount']);
+    $b = body($req, ['date', 'category', 'description', 'amount'], [
+        'defaults' => ['direction' => 'keluar', 'sourceFund' => 'kas'],
+    ]);
     if ($err = Validator::assertNotFuture($b['date'])) Validator::fail400(['date' => $err]);
     $cats = ['es_batu', 'biaya_angkut', 'pakan', 'operasional_alat', 'lainnya'];
     if (!in_array($b['category'], $cats, true)) Validator::fail400(['category' => 'Kategori tidak valid']);
+    if (!in_array($b['direction'], ['keluar', 'masuk'], true)) Validator::fail400(['direction' => 'Arah tidak valid']);
+    if (!in_array($b['sourceFund'], ['kas', 'bank', 'lainnya'], true)) Validator::fail400(['sourceFund' => 'Sumber tidak valid']);
     if (trim($b['description']) === '') Validator::fail400(['description' => 'Wajib diisi']);
     if ((float)$b['amount'] <= 0) Validator::fail400(['amount' => 'Nominal harus > 0']);
     [$row, $s] = $db->insert('expenses', [
         'date' => $b['date'],
         'category' => $b['category'],
+        'direction' => $b['direction'],
+        'source_fund' => $b['sourceFund'],
         'description' => trim($b['description']),
         'amount' => (float)$b['amount'],
     ]);
@@ -226,6 +280,7 @@ $app->get('/reports/whiteboard', function (Request $req, Response $res) use ($db
     if ($err = Validator::assertNotFuture($date)) Validator::fail400(['date' => $err]);
     [$cuts] = $db->select('butchery', [], ['order' => 'date.asc']);
     [$sales] = $db->select('sales', [], ['order' => 'date.asc']);
+    $catalog = loadCatalog($db);
 
     $prevCut = $dayCut = $prevSold = $daySold = [];
     foreach ($cuts ?? [] as $c) {
@@ -239,10 +294,14 @@ $app->get('/reports/whiteboard', function (Request $req, Response $res) use ($db
         foreach ($s['items'] as $it) ${$b}[$it['productCode']] = (${$b}[$it['productCode']] ?? 0) + $it['quantity'];
     }
 
-    $kgProducts = ['PC','KRKS','BLD','DAD','PAH','SAY','FIL','GLG','CKR','ATI','AMP'];
-    $prices = ['PC'=>38000,'KRKS'=>36000,'BLD'=>37000,'DAD'=>45000,'PAH'=>40000,'SAY'=>25000,'FIL'=>55000,'GLG'=>15000,'CKR'=>20000,'ATI'=>25000,'AMP'=>22000];
+    // Semua produk unit kg dari catalog (17 PRD — bukan hardcode)
+    $kgProducts = array_values(array_filter(
+        $catalog,
+        fn($p) => ($p['unit'] ?? 'kg') === 'kg'
+    ));
     $entries = [];
-    foreach ($kgProducts as $code) {
+    foreach ($kgProducts as $p) {
+        $code = $p['code'];
         $opening = max(0, ($prevCut[$code] ?? 0) - ($prevSold[$code] ?? 0));
         $incoming = $dayCut[$code] ?? 0;
         $outgoing = $daySold[$code] ?? 0;
@@ -252,7 +311,7 @@ $app->get('/reports/whiteboard', function (Request $req, Response $res) use ($db
             'incoming' => round($incoming, 1),
             'outgoing' => round($outgoing, 1),
             'closingStock' => round(max(0, $opening + $incoming - $outgoing), 1),
-            'unitPrice' => $prices[$code],
+            'unitPrice' => $p['price'],
         ];
     }
     return json($res, $entries);

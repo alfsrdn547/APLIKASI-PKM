@@ -23,14 +23,22 @@ class Supabase
         ]);
     }
 
-    /** SELECT. $opt: filters via eq: [col=>val], order, range */
+    /** SELECT. Filters: assoc array, string values = PostgREST operators
+ *   'eq.', 'gte.', 'lte.', 'like.' — jika value sdh punya operator → pakai langsung.
+ *   Jika value tanpa titik → otomatis 'eq.'.
+ *   $opt: 'order' => 'col.asc', 'limit' => N, 'offset' => N
+ */
     public function select(string $table, array $filter = [], array $opt = []): array
     {
-        $q = $filter;
+        $q = [];
         foreach ($filter as $col => $val) {
-            $q[$col] = 'eq.' . $val;
+            // Jika value sdh mengandung operator (mis. 'gte.2026-09-01') → pakai langsung
+            // Jika murni value → tambah eq.
+            $q[$col] = is_string($val) && str_contains($val, '.') ? $val : 'eq.' . $val;
         }
         if (!empty($opt['order'])) $q['order'] = $opt['order'];
+        if (!empty($opt['limit'])) $q['limit'] = $opt['limit'];
+        if (!empty($opt['offset'])) $q['offset'] = $opt['offset'];
         $r = $this->http->get($this->base . '/' . $table, ['query' => $q]);
         return [json_decode($r->getBody(), true), $r->getStatusCode()];
     }
