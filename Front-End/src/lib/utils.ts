@@ -16,11 +16,6 @@ export function formatRp(value: number): string {
   }).format(value);
 }
 
-// ─── Number with thousand separator ──────────────────────────────────
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat("id-ID").format(value);
-}
-
 // ─── Date helpers ────────────────────────────────────────────────────
 export function todayISO(): string {
   return new Date().toISOString().split("T")[0];
@@ -63,11 +58,4 @@ export function isPositive(value: number): boolean {
 
 export function isNonNegative(value: number): boolean {
   return value >= 0;
-}
-
-// ─── Number parsing safe for forms ───────────────────────────────────
-export function parseNum(val: string | number): number {
-  if (typeof val === "number") return val;
-  const n = parseFloat(val.replace(/[^\d.-]/g, ""));
-  return isNaN(n) ? 0 : n;
 }
