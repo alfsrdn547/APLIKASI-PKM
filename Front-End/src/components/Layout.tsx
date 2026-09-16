@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useRPHStore } from "@/stores/useRPHStore";
+import { ImportModal } from "@/components/modules/ImportModal";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "📊" },
@@ -21,6 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const loading = useRPHStore((s) => s.loading);
   const error = useRPHStore((s) => s.error);
   const fetchedOnce = useRef(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     if (!fetchedOnce.current) {
@@ -53,6 +55,13 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setImportOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
+            >
+              <span>⬆️</span>
+              Import Data
+            </button>
             <span className="hidden rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 sm:inline">
               ● Sinkronisasi Real-time
             </span>
@@ -108,6 +117,8 @@ export function Layout({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
