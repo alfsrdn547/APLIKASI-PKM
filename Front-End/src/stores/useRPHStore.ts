@@ -14,7 +14,7 @@ import type {
   PickupStatus,
 } from "@/types";
 import { PRODUCTS, DEFAULT_PRICES } from "@/constants/products";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 // ─── Row ↔ column mapping (camelCase TS ↔ snake_case DB) ─────────────
 interface IncomingRow {
@@ -177,20 +177,16 @@ export const useRPHStore = create<RPHState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const [inc, sal, exp, but] = await Promise.all([
-        supabase.from("incoming").select("*").order("date", { ascending: true }),
-        supabase.from("sales").select("*,sales_items(*)").order("date", { ascending: true }),
-        supabase.from("expenses").select("*").order("date", { ascending: true }),
-        supabase.from("butchery").select("*").order("date", { ascending: true }),
+        api.get<any[]>("/incoming"),
+        api.get<any[]>("/sales"),
+        api.get<any[]>("/expenses"),
+        api.get<any[]>("/butchery"),
       ]);
-      if (inc.error) throw inc.error;
-      if (sal.error) throw sal.error;
-      if (exp.error) throw exp.error;
-      if (but.error) throw but.error;
       set({
-        incoming: (inc.data as unknown as IncomingRow[]).map(mapIncoming),
-        sales: (sal.data as unknown as SalesRow[]).map(mapSales),
-        expenses: (exp.data as unknown as ExpenseRow[]).map(mapExpense),
-        butchery: (but.data as unknown as ButcheryRow[]).map(mapButchery),
+        incoming: (inc as unknown as IncomingRow[]).map(mapIncoming),
+        sales: (sal as unknown as SalesRow[]).map(mapSales),
+        expenses: (exp as unknown as ExpenseRow[]).map(mapExpense),
+        butchery: (but as unknown as ButcheryRow[]).map(mapButchery),
         loading: false,
       });
     } catch (e: any) {
@@ -200,31 +196,18 @@ export const useRPHStore = create<RPHState>((set, get) => ({
 
   // ── Modul 1: Penerimaan ──────────────────────────────────────────
   addIncoming: async (rec) => {
-    const { data, error } = await supabase
-      .from("incoming")
-      .insert(toIncomingRow(rec))
-      .select()  // returns inserted row with id & created_at
-      .single();
-    if (error) throw new Error(error.message);
-    const inserted = data as unknown as IncomingRow;
+    const inserted = await api.post<IncomingRow>("/incoming", toIncomingRow(rec));
     set((s) => ({ incoming: [...s.incoming, mapIncoming(inserted)] }));
   },
 
   // ── Modul 2: Pemotongan ──────────────────────────────────────────
   addButchery: async (rec) => {
-    const { data, error } = await supabase
-      .from("butchery")
-      .insert(toButcheryRow(rec))
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    const inserted = data as unknown as ButcheryRow;
+    const inserted = await api.post<ButcheryRow>("/butchery", toButcheryRow(rec));
     set((s) => ({ butchery: [...s.butchery, mapButchery(inserted)] }));
   },
 
   removeButchery: async (id) => {
-    const { error } = await supabase.from("butchery").delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    await api.delete(`/butchery/${id}`);
     set((s) => ({ butchery: s.butchery.filter((b) => b.id !== id) }));
   },
 
@@ -272,90 +255,59 @@ export const useRPHStore = create<RPHState>((set, get) => ({
 
   // ── Modul 3: Penjualan ──────────────────────────────────────────
   addSalesOrder: async (order) => {
-    // 1. Insert sales row (tanpa items jsonb — items di child table)
-    const { data: salesRow, error: salesErr } = await supabase
-      .from("sales")
-      .insert(toSalesRow(order))
-      .select()
-      .single();
-    if (salesErr) throw new Error(salesErr.message);
-    const inserted = salesRow as unknown as SalesRow;
-
-    // 2. Insert sales_items (bulk) — rollback sales jika gagal
-    const itemRows = order.items.map((it) => ({
-      sales_id: inserted.id,
-      product_code: it.productCode,
-      product_name: it.productName,
-      quantity: it.quantity,
-      unit_price: it.unitPrice,
-    }));
-    const { error: itemsErr } = await supabase
-      .from("sales_items")
-      .insert(itemRows);
-    if (itemsErr) {
-      // Rollback: hapus sales yang baru dibuat
-      await supabase.from("sales").delete().eq("id", inserted.id);
-      throw new Error(itemsErr.message);
-    }
-
-    // 3. Reload sales dengan embed items supaya state konsisten
-    const { data: fullSales } = await supabase
-      .from("sales")
-      .select("*,sales_items(*)")
-      .eq("id", inserted.id)
-      .single();
-    if (fullSales) {
-      set((s) => ({ sales: [...s.sales, mapSales(fullSales as unknown as SalesRow)] }));
-    }
+    // Server: insert sales + sales_items, hitung total, stock check
+    const full = await api.post<SalesRow>("/sales", {
+      date: order.date,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      notes: order.notes,
+      status: order.status,
+      payStatus: order.payStatus,
+      pickupStatus: order.pickupStatus,
+      paidAmount: order.paidAmount,
+      items: order.items.map((it) => ({
+        productCode: it.productCode,
+        productName: it.productName,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+      })),
+    });
+    set((s) => ({ sales: [...s.sales, mapSales(full)] }));
   },
 
   updateOrderStatus: async (id, status) => {
-    const { error } = await supabase.from("sales").update({ status }).eq("id", id);
-    if (error) throw new Error(error.message);
+    const updated = await api.patch<SalesRow>(`/sales/${id}`, { status });
     set((s) => ({
-      sales: s.sales.map((o) => (o.id === id ? { ...o, status } : o)),
+      sales: s.sales.map((o) => (o.id === id ? { ...o, ...mapSales(updated) } : o)),
     }));
   },
 
   updateOrderPayment: async (id, patch) => {
-    const dbPatch: Record<string, unknown> = {};
-    if (patch.payStatus) dbPatch.pay_status = patch.payStatus;
-    if (patch.pickupStatus) dbPatch.pickup_status = patch.pickupStatus;
-    if (patch.paidAmount !== undefined) dbPatch.paid_amount = patch.paidAmount;
-    const { error } = await supabase.from("sales").update(dbPatch).eq("id", id);
-    if (error) throw new Error(error.message);
+    const updated = await api.patch<SalesRow>(`/sales/${id}`, {
+      payStatus: patch.payStatus,
+      pickupStatus: patch.pickupStatus,
+      paidAmount: patch.paidAmount,
+    });
     set((s) => ({
-      sales: s.sales.map((o) =>
-        o.id === id
-          ? {
-              ...o,
-              payStatus: patch.payStatus ?? o.payStatus,
-              pickupStatus: patch.pickupStatus ?? o.pickupStatus,
-              paidAmount: patch.paidAmount !== undefined ? patch.paidAmount : o.paidAmount,
-            }
-          : o
-      ),
+      sales: s.sales.map((o) => (o.id === id ? { ...o, ...mapSales(updated) } : o)),
     }));
   },
 
   // ── Modul 3: Pengeluaran ────────────────────────────────────────
   addExpense: async (rec) => {
-    const now = new Date();
-    const { data, error } = await supabase
-      .from("expenses")
-      .insert(toExpenseRow(rec))
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    const inserted = data as unknown as ExpenseRow;
-    set((s) => ({
-      expenses: [...s.expenses, mapExpense(inserted)],
-    }));
+    const inserted = await api.post<ExpenseRow>("/expenses", {
+      date: rec.date,
+      category: rec.category,
+      direction: rec.direction,
+      sourceFund: rec.sourceFund,
+      description: rec.description,
+      amount: rec.amount,
+    });
+    set((s) => ({ expenses: [...s.expenses, mapExpense(inserted)] }));
   },
 
   removeExpense: async (id) => {
-    const { error } = await supabase.from("expenses").delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    await api.delete(`/expenses/${id}`);
     set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) }));
   },
 

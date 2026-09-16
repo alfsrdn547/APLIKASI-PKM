@@ -27,14 +27,6 @@ export interface IncomingRecord {
   createdAt: string;
 }
 
-export interface DailyProduction {
-  date: string;
-  totalIn: number;
-  totalDead: number;
-  totalBroken: number;
-  netProduction: number;  // totalIn - totalDead
-}
-
 // ─── Modul 2: Papan Tulis Digital ─────────────────────────────────────
 export interface WhiteboardEntry {
   productCode: string;
@@ -79,10 +71,6 @@ export interface SalesOrder {
   createdAt: string;
 }
 
-export interface InvoicePrintOrder extends SalesOrder {
-  // Alias utk komponen print yang butuh daily info (opsional)
-}
-
 // ─── Modul 3: Transaksi Pengeluaran ──────────────────────────────────
 export type ExpenseCategory =
   | "es_batu"
@@ -103,23 +91,6 @@ export interface ExpenseRecord {
   description: string;
   amount: number;         // Rp
   createdAt: string;
-}
-
-// ─── Modul 4: Dashboard ──────────────────────────────────────────────
-export interface DailySummary {
-  date: string;
-  totalChickenIn: number;
-  totalChickenDead: number;
-  netProduction: number;
-  totalSales: number;     // jumlah transaksi
-  totalRevenue: number;   // total omset
-  totalExpenses: number;  // total pengeluaran
-  profit: number;         // revenue - expenses
-}
-
-export interface MonthlySummary {
-  month: string;          // YYYY-MM
-  summaries: DailySummary[];
 }
 
 // ─── Modul 2: Pemotongan Manual ───────────────────────────────────────
