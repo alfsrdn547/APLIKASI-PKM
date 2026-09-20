@@ -1,10 +1,12 @@
 import { getAdminClient } from "@/lib/supabase-server";
 import { ApiError, ok, route } from "@/lib/apiResponse";
+import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/audit-log?entity=
 export const GET = route(async (req) => {
+  await requireAuth(req, "read");
   const q = new URL(req.url).searchParams;
   let query = getAdminClient().from("audit_log").select("*").order("created_at", { ascending: false }).limit(200);
   if (q.get("entity")) query = query.eq("entity", q.get("entity")!);

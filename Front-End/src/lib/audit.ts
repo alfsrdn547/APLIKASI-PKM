@@ -1,6 +1,8 @@
 import { getAdminClient } from "./supabase-server";
+import { getSession } from "./auth";
 
-/** Tulis audit_log (server-side) utk tiap aksi write. */
+/** Tulis audit_log (server-side) utk tiap aksi write.
+ *  actor diisi dari session user bila ada (email#role), else "api". */
 export async function writeAudit(
   method: string,
   path: string,
@@ -9,11 +11,17 @@ export async function writeAudit(
   action: "create" | "update" | "delete",
   before: unknown,
   after: unknown,
-  status: number
+  status: number,
+  req?: Request
 ): Promise<void> {
+  let actor = "api";
   try {
+    if (req) {
+      const u = await getSession(req);
+      if (u) actor = `${u.email}#${u.role}`;
+    }
     await getAdminClient().from("audit_log").insert({
-      actor: "api",
+      actor,
       method,
       path,
       entity,

@@ -10,6 +10,10 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json?.error) {
     const err = json?.error;
+    if ((res.status === 401 || err?.code === "UNAUTHORIZED") && typeof window !== "undefined") {
+      window.location.href = "/login";
+      throw new Error("Sesi berakhir, silakan login");
+    }
     throw new Error(err?.message || `Request gagal (${res.status})`);
   }
   return json.data as T;

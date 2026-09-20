@@ -1,10 +1,11 @@
 # RPH — Sistem Pencatatan (Frontend)
 
 Digitalisasi pencatatan harian Rumah Potong Hewan (RPH) sesuai PRD.
-**Frontend-only:** state lokal Zustand + mock data. Backend belum dibutuhkan (validasi & kalkulasi stok berjalan real-time di browser).
+**Backend = API Routes** (`src/app/api/*`) — semua CRUD lewat server (service-role Supabase), bukan anon key client. Login wajib (operator/pemilik).
 
 ## Stack
 - **Next.js 14** (App Router) + **TypeScript** + **Tailwind CSS** + **Zustand**
+- **Supabase** (DB) + storage hash/token via `node:crypto` (tanpa dep eksternal)
 
 ## Cara Jalankan
 ```bash
@@ -41,16 +42,31 @@ src/
 | M3 Pengeluaran | `/pengeluaran` | `ExpensesModule` (kategori beban, rekap) |
 | M4 Dashboard | `/` | `DashboardContent` (stat, mini-chart, rekap), `ExportModal` (CSV/JSON/Print) |
 
-## Validasi yang Sudah Berjalan (tanpa backend)
+## Validasi yang Sudah Berjalan
+- **Auth**: semua route `/api/*` butuh sesi JWT (httpOnly cookie). Role `operator` boleh tulis; `pemilik` read-only (403).
 - **Stok menolak minus** — qty penjualan > stok tersedia ⇒ error per-item.
 - **Harga/Qty positif** — ditolak ≤ 0.
 - **Tanggal tidak boleh masa depan** — input `date` dibatasi `max=today` + validasi ulang.
 - **Ayam mati ≤ ayam masuk** — cross-field check di Modul 1.
 
+## Auth & Environment
+
+Jalankan `docs/AUTH_MIGRATION.sql` di Supabase (tambah kolom `password_hash` di `users`).
+
+Set env (`.env.local` + Vercel):
+| Var | Fungsi |
+|---|---|
+| `JWT_SECRET` | kunci sesi (acak, ≥32 char) |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | akun `pemilik` awal (dibuat otomatis saat login pertama, idempotent) |
+| `INVITE_TOKEN_HASH` | hash scrypt dari token undangan utk `/register` (lihat bawah) |
+
+Generate `INVITE_TOKEN_HASH` (di `Front-End/src`):
+```bash
+node -e "const{scryptSync,randomBytes}=require('node:crypto');const t='isi-token-undangan-kamu';const s=randomBytes(16);console.log('scrypt$'+s.toString('base64')+'$'+scryptSync(t,s,32).toString('base64'))"
+```
+Pemilik berbagi *token asli* kepada operator; halaman `/register` menerima token itu.
+
 ## Output & State
 - **Whiteboard** & **Dashboard** = computed dari store (re-derive tiap render, <2 detik).
 - **Invoice 2 rangkap** — klik baris status Selesai/Proses di riwayat → tombol Cetak.
   Layout print ada di `src/app/globals.css` (`@media print`): 2 lembar per A4, garis putus antar rangkap.
-
-## Menyambung Backend Nanti
-Ganti action di `useRPHStore` dengan `fetch` ke API (`/api/...`), dan kompensasi mock-data dengan data server. Interface `types/` sudah siap dijadikan kontrak API.

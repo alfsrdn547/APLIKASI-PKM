@@ -2,11 +2,13 @@ import { getAdminClient } from "@/lib/supabase-server";
 import { ok, fail, route, readJson } from "@/lib/apiResponse";
 import { assertNotFuture } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/products — katalog 17 kode PRD
-export const GET = route(async () => {
+export const GET = route(async (req) => {
+  await requireAuth(req, "read");
   const products = [
     { code: "PC", name: "Ayam Utuh Parting/Potong", unit: "kg", category: "ayam_utuh" },
     { code: "KRKS", name: "Karkas Utuh", unit: "kg", category: "ayam_utuh" },

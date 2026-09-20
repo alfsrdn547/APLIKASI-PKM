@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/lib/supabase-server";
 import { ApiError, ok, route } from "@/lib/apiResponse";
 import { assertNotFuture } from "@/lib/validator";
+import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ async function loadCutters() {
 
 // GET /api/reports/whiteboard?date=YYYY-MM-DD  (manual butchery = sumber)
 export const GET = route(async (req) => {
+  await requireAuth(req, "read");
   const q = new URL(req.url).searchParams;
   const sub = q.get("sub");
 

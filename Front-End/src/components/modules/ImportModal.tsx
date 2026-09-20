@@ -222,8 +222,18 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
               Download Template
             </Button>
             <span className="text-xs text-gray-400">
-              Isi data, lalu upload kembali
+              File berisi sheet "Import" (isi datanya) + "Cara Pakai" (panduan langkah & contoh)
             </span>
+          </div>
+
+          {/* Guide blurb */}
+          <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            <p className="font-medium">Cara pakai template:</p>
+            <ol className="ml-4 mt-1 list-decimal space-y-0.5 text-blue-700">
+              <li>Unduh template, buka sheet <b>Import</b> — kolom 1 = nama header, jangan diubah.</li>
+              <li>Isi data mulai <b>baris 2</b>; ikuti format & contoh (buka sheet <b>Cara Pakai</b>).</li>
+              <li>Simpan & upload file di sini. Baris yang salah akan dilaporkan satu-satu tanpa menghentikan sisanya.</li>
+            </ol>
           </div>
 
           {/* File input */}
