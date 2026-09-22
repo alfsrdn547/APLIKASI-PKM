@@ -28,30 +28,26 @@ export function Layout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Cek sesi via /api/auth/me — 401 → redirect ke /login (kecuali di halaman auth)
+  // Cek sesi via /api/auth/me — 401 → redirect ke /login.
+  // Halaman auth (login/register) TIDAK memakai Layout (route group (auth)).
   useEffect(() => {
     (async () => {
-      const onAuthPage = pathname === "/login" || pathname === "/register";
       try {
         const res = await fetch("/api/auth/me");
         const me = await res.json().catch(() => ({}));
         if (res.ok && me?.data) {
           setUser(me.data);
-          if (onAuthPage) {
-            window.location.href = "/";
-            return;
-          }
-        } else if (!onAuthPage) {
+        } else {
           window.location.href = "/login";
           return;
         }
       } catch {
-        if (!onAuthPage) window.location.href = "/login";
+        window.location.href = "/login";
       } finally {
         setAuthChecked(true);
       }
     })();
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (!fetchedOnce.current) {
