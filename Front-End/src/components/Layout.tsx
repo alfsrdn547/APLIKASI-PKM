@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/papan-tulis", label: "Papan Tulis", icon: "📋" },
   { href: "/penjualan", label: "Penjualan", icon: "🧾" },
   { href: "/pengeluaran", label: "Pengeluaran", icon: "💸" },
+  { href: "/operator", label: "Operator", icon: "👥" },
 ];
 
 type AuthUser = { id: string; email: string; fullName: string; role: "operator" | "pemilik" };
@@ -29,7 +30,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [authChecked, setAuthChecked] = useState(false);
 
   // Cek sesi via /api/auth/me — 401 → redirect ke /login.
-  // Halaman auth (login/register) TIDAK memakai Layout (route group (auth)).
+  // Halaman login TIDAK memakai Layout (route group (auth)).
   useEffect(() => {
     (async () => {
       try {
@@ -135,6 +136,8 @@ export function Layout({ children }: { children: ReactNode }) {
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            // Menu Operator khusus pemilik.
+            if (item.href === "/operator" && user?.role !== "pemilik") return null;
             return (
               <Link
                 key={item.href}

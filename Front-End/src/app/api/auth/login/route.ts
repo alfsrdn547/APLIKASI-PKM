@@ -1,5 +1,5 @@
 import { getAdminClient } from "@/lib/supabase-server";
-import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
+import { ApiError, route, readJson } from "@/lib/apiResponse";
 import { hashPassword, verifyPassword, createSessionToken, SessionCookie } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -10,42 +10,34 @@ function sessionCookie(token: string): string {
   }`;
 }
 
-/** Idempotent bootstrap: buat akun pemilik dari SEED_ADMIN_* bila belum ada user aktif. */
-async function ensureSeed(): Promise<void> {
-  const email = process.env.SEED_ADMIN_EMAIL;
-  const password = process.env.SEED_ADMIN_PASSWORD;
-  if (!email || !password) return;
-  const { data: existing } = await getAdminClient().from("users").select("id").eq("email", email).maybeSingle();
-  if (existing) return;
-  await getAdminClient().from("users").insert({
-    email,
-    full_name: "Admin RPH",
-    role: "pemilik",
-    active: true,
-    password_hash: hashPassword(password),
-  });
-}
-
-// POST /api/auth/login
+// POST /api/auth/login — email + password, semua role.
 export const POST = route(async (req) => {
   const b = await readJson<{ email?: string; password?: string }>(req);
   const email = String(b?.email ?? "").trim().toLowerCase();
   const password = String(b?.password ?? "");
-  if (!email || !password)
-    throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { email: "Wajib diisi", password: "Wajib diisi" }, 400);
 
-  await ensureSeed();
+  const fields: Record<string, string> = {};
+  if (!email) fields.email = "Email wajib diisi";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fields.email = "Format email tidak valid";
+  if (!password) fields.password = "Password wajib diisi";
+  if (Object.keys(fields).length) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", fields, 400);
 
   const { data: user } = await getAdminClient()
     .from("users")
     .select("id,email,full_name,role,active,password_hash")
     .eq("email", email)
     .maybeSingle();
+
   if (!user || !user.password_hash || !verifyPassword(password, user.password_hash))
     throw new ApiError("INVALID_CREDENTIALS", "Email atau password salah", {}, 401);
   if (!user.active) throw new ApiError("ACCOUNT_DISABLED", "Akun dinonaktifkan", {}, 403);
 
-  const sessionUser = { id: user.id, email: user.email, fullName: user.full_name ?? "", role: user.role };
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    fullName: user.full_name ?? "",
+    role: user.role,
+  };
   const token = createSessionToken(sessionUser);
   return new Response(JSON.stringify({ data: sessionUser }), {
     status: 200,

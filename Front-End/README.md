@@ -43,7 +43,7 @@ src/
 | M4 Dashboard | `/` | `DashboardContent` (stat, mini-chart, rekap), `ExportModal` (CSV/JSON/Print) |
 
 ## Validasi yang Sudah Berjalan
-- **Auth**: semua route `/api/*` butuh sesi JWT (httpOnly cookie). Role `operator` boleh tulis; `pemilik` read-only (403).
+- **Auth**: semua route `/api/*` butuh sesi JWT (httpOnly cookie). Role `operator` boleh tulis data; `pemilik` read-only (403) tapi boleh kelola akun operator.
 - **Stok menolak minus** — qty penjualan > stok tersedia ⇒ error per-item.
 - **Harga/Qty positif** — ditolak ≤ 0.
 - **Tanggal tidak boleh masa depan** — input `date` dibatasi `max=today` + validasi ulang.
@@ -53,18 +53,20 @@ src/
 
 Jalankan `docs/AUTH_MIGRATION.sql` di Supabase (tambah kolom `password_hash` di `users`).
 
+**Akun pemilik pertama** — sekali jalan, butuh `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`:
+```bash
+node scripts/create-admin.mjs admin@rph.sch.id "rahasia-kuat"
+```
+Idempotent — email yang sudah ada exit tanpa perubahan.
+
+**Setelah itu**, pemilik bikin akun operator dari `/operator` (nama + email + password). Nggak ada halaman daftar; operator cuma punya `/login`.
+
 Set env (`.env.local` + Vercel):
 | Var | Fungsi |
 |---|---|
-| `JWT_SECRET` | kunci sesi (acak, ≥32 char) |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | akun `pemilik` awal (dibuat otomatis saat login pertama, idempotent) |
-| `INVITE_TOKEN_HASH` | hash scrypt dari token undangan utk `/register` (lihat bawah) |
+| `JWT_SECRET` | kunci sesi (acak, ≥32 char). Wajib di produksi — kosong = throw |
 
-Generate `INVITE_TOKEN_HASH` (di `Front-End/src`):
-```bash
-node -e "const{scryptSync,randomBytes}=require('node:crypto');const t='isi-token-undangan-kamu';const s=randomBytes(16);console.log('scrypt$'+s.toString('base64')+'$'+scryptSync(t,s,32).toString('base64'))"
-```
-Pemilik berbagi *token asli* kepada operator; halaman `/register` menerima token itu.
+`requireAuth(req, mode)` punya 3 mode: `read` (semua role), `write` (operator saja), `admin` (pemilik saja).
 
 ## Output & State
 - **Whiteboard** & **Dashboard** = computed dari store (re-derive tiap render, <2 detik).

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Input } from "@/components/ui/Input";
@@ -43,7 +42,7 @@ export default function LoginPage() {
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900">Masuk RPH</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Login sebagai operator atau pemilik
+            Gunakan email yang diberikan pemilik
           </p>
         </div>
         <form onSubmit={submit} className="space-y-4">
@@ -52,7 +51,7 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="nama@rph.com"
+            placeholder="nama@rph.sch.id"
             autoComplete="username"
             required
           />
@@ -72,10 +71,7 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="mt-4 text-center text-xs text-gray-500">
-          Belum punya akun?{" "}
-          <Link href="/register" className="font-medium text-blue-600 hover:underline">
-            Daftar (undangan)
-          </Link>
+          Belum punya akun? Hubungi pemilik untuk dibuatkan.
         </p>
       </div>
     </div>

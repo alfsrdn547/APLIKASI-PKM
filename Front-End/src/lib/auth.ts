@@ -16,7 +16,10 @@ const COOKIE = "session";
 function secret(): string {
   const s = process.env.JWT_SECRET;
   if (s) return s;
-  // dev-only fallback; prod harus set JWT_SECRET
+  // Di produksi secret yang hilang = sesi ditandatangani pakai string publik.
+  // Fail keras, jangan diam-diam pakai fallback dev.
+  if (process.env.NODE_ENV === "production")
+    throw new Error("JWT_SECRET belum di-set");
   return "dev-secret-jangan-pakai-di-produksi";
 }
 
@@ -88,7 +91,7 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
   try {
     const { data } = await getAdminClient()
       .from("users")
-      .select("id,email,full_name,role,active")
+      .select("id,email,full_name,role,active,phone")
       .eq("id", payload.sub)
       .single();
     if (!data || !data.active) return null;
@@ -122,14 +125,19 @@ export function verifyPassword(plain: string, stored: string): boolean {
   }
 }
 
-/** Require auth; mode "write" → operator only (pemilik read-only). */
+/** Require auth.
+ *  read  → semua role
+ *  write → operator saja (pemilik read-only pada data)
+ *  admin → pemilik saja (kelola operator:odied, bukan data) */
 export async function requireAuth(
   req: Request,
-  mode: "read" | "write" = "read"
+  mode: "read" | "write" | "admin" = "read"
 ): Promise<SessionUser> {
   const user = await getSession(req);
   if (!user) throw new ApiError("UNAUTHORIZED", "Sesi tidak valid, silakan login", {}, 401);
   if (mode === "write" && user.role !== "operator")
     throw new ApiError("FORBIDDEN", "Pemilik hanya bisa membaca data", {}, 403);
+  if (mode === "admin" && user.role !== "pemilik")
+    throw new ApiError("FORBIDDEN", "Hanya pemilik yang bisa mengelola operator", {}, 403);
   return user;
 }
