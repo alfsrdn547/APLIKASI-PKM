@@ -53,11 +53,11 @@ src/
 
 Jalankan `docs/AUTH_MIGRATION.sql` di Supabase (tambah kolom `password_hash` di `users`).
 
-**Akun pemilik pertama** — sekali jalan, butuh `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`:
+**Akun pemilik pertama** — sekali jalan, butuh `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`:
 ```bash
-node scripts/create-admin.mjs admin@rph.sch.id "rahasia-kuat"
+npm run admin admin@rph.sch.id "rahasia-kuat"
 ```
-Idempotent — email yang sudah ada exit tanpa perubahan.
+Idempotent — email yang sudah ada exit tanpa perubahan. Kalau row-nya ada tapi `password_hash` NULL (akun mati), jalankan ulang dengan `--force` untuk set password.
 
 **Setelah itu**, pemilik bikin akun operator dari `/operator` (nama + email + password). Nggak ada halaman daftar; operator cuma punya `/login`.
 

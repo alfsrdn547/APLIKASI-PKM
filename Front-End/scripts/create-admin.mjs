@@ -1,8 +1,9 @@
-// Buat akun pemilik pertama. Sekali jalan, lalu set env var-nya.
-//   node scripts/create-admin.mjs admin@rph.sch.id "password-anda"
+// Buat / set password akun pemilik.
+//   node scripts/create-admin.mjs <email> <password>
+//   node scripts/create-admin.mjs <email> <password> --force   ← timpa hash, set role & aktifkan
 //
-// Butuh SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY di .env.local.
-// Idempotent: email yang sudah ada → exit 0 tanpa perubahan.
+// Butuh NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY di .env.local.
+// Tanpa --force: email yang sudah ada → exit 0 tanpa perubahan.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -23,9 +24,10 @@ try {
   process.exit(1);
 }
 
-const [email, password] = process.argv.slice(2);
+const [email, password, ...flags] = process.argv.slice(2);
+const force = flags.includes("--force");
 if (!email || !password) {
-  console.error("Pakai: node scripts/create-admin.mjs <email> <password>");
+  console.error("Pakai: node scripts/create-admin.mjs <email> <password> [--force]");
   process.exit(1);
 }
 if (password.length < 8) {
@@ -52,26 +54,54 @@ const db = createClient(url, serviceKey, {
   auth: { persistSession: false },
 });
 
-const { data: existing } = await db.from("users").select("id").eq("email", email).maybeSingle();
-if (existing) {
-  console.log(`Sudah ada: ${email} — tidak ada perubahan.`);
+const { data: existing } = await db
+  .from("users")
+  .select("id,email,role,active,password_hash")
+  .eq("email", email)
+  .maybeSingle();
+
+if (existing && !force) {
+  // Cek dulu: row tanpa password_hash = akun mati (login selalu 401).
+  if (!existing.password_hash) {
+    console.error(`${email} ada tapi password_hash NULL — tidak bisa login.`);
+    console.error(`Jalankan ulang dengan --force untuk set password:`);
+    console.error(`  node scripts/create-admin.mjs ${email} "<password>" --force`);
+    process.exit(1);
+  }
+  console.log(`Sudah ada: ${email} (${existing.role}, ${existing.active ? "aktif" : "nonaktif"}) — tidak ada perubahan.`);
   process.exit(0);
 }
 
-const { data, error } = await db
-  .from("users")
-  .insert({
-    email: email.toLowerCase(),
-    full_name: "Admin RPH",
-    role: "pemilik",
-    active: true,
-    password_hash: hashPassword(password),
-  })
-  .select("id,email,role")
-  .single();
+if (existing) {
+  // --force: set password baru + pastikan role/active benar.
+  const { data, error } = await db
+    .from("users")
+    .update({ password_hash: hashPassword(password), role: "pemilik", active: true })
+    .eq("id", existing.id)
+    .select("id,email,role")
+    .single();
+  if (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  console.log(`Password diset + role dipaksa ke pemilik: ${data.email} (${data.role})`);
+} else {
+  const { data, error } = await db
+    .from("users")
+    .insert({
+      email: email.toLowerCase(),
+      full_name: "Admin RPH",
+      role: "pemilik",
+      active: true,
+      password_hash: hashPassword(password),
+    })
+    .select("id,email,role")
+    .single();
 
-if (error) {
-  console.error(error.message);
-  process.exit(1);
+  if (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  console.log(`Pemilik dibuat: ${data.email} (${data.role})`);
 }
-console.log(`Pemilik dibuat: ${data.email} (${data.role})`);
+

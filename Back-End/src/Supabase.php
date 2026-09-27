@@ -32,9 +32,18 @@ class Supabase
     {
         $q = [];
         foreach ($filter as $col => $val) {
-            // Jika value sdh mengandung operator (mis. 'gte.2026-09-01') → pakai langsung
-            // Jika murni value → tambah eq.
-            $q[$col] = is_string($val) && str_contains($val, '.') ? $val : 'eq.' . $val;
+            if (is_array($val)) {
+                // Range: [min, max] — salah satu boleh null. PostgREST menerima
+                // "gte.a,lte.b" dalam satu query param, jadi gte/lte nggak saling timpa.
+                $parts = [];
+                if (isset($val[0]) && $val[0] !== '') $parts[] = 'gte.' . $val[0];
+                if (isset($val[1]) && $val[1] !== '') $parts[] = 'lte.' . $val[1];
+                $q[$col] = implode(',', $parts);
+            } else {
+                // Jika value sdh mengandung operator (mis. 'gte.2026-09-01') → pakai langsung
+                // Jika murni value → tambah eq.
+                $q[$col] = is_string($val) && str_contains($val, '.') ? $val : 'eq.' . $val;
+            }
         }
         if (!empty($opt['order'])) $q['order'] = $opt['order'];
         if (!empty($opt['limit'])) $q['limit'] = $opt['limit'];

@@ -20,7 +20,9 @@ export async function writeAudit(
       const u = await getSession(req);
       if (u) actor = `${u.email}#${u.role}`;
     }
-    await getAdminClient().from("audit_log").insert({
+    // Supabase-js nggak throw — error dikembalikan di `.error`, bukan dilempar.
+    // Cek manual, kalau nggak audit gagal diam-dim selamanya.
+    const { error } = await getAdminClient().from("audit_log").insert({
       actor,
       method,
       path,
@@ -30,7 +32,9 @@ export async function writeAudit(
       changes: { before: before ?? null, after: after ?? null },
       status_code: status,
     });
-  } catch {
+    if (error) console.error(`[audit] gagal tulis ${method} ${path}:`, error.message);
+  } catch (e) {
     // jangan gagalkan request utama kalau audit gagal
+    console.error(`[audit] error tak terduga ${method} ${path}:`, e);
   }
 }
