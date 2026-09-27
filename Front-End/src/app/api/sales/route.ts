@@ -2,11 +2,13 @@ import { getAdminClient } from "@/lib/supabase-server";
 import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
 import { assertNotFuture, checkSaleStock, isOneOf, PAY_STATUSES, PICKUP_STATUSES, ORDER_STATUSES } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/sales?from=&to=&status= → array sales + sales_items embed
 export const GET = route(async (req) => {
+  await requireAuth(req, "read");
   const q = new URL(req.url).searchParams;
   let query = getAdminClient().from("sales").select("*,sales_items(*)").order("date", { ascending: true });
   if (q.get("from")) query = query.gte("date", q.get("from")!);
@@ -19,6 +21,7 @@ export const GET = route(async (req) => {
 
 // POST /api/sales — insert sales + sales_items (multi), total server/trigger
 export const POST = route(async (req) => {
+  await requireAuth(req, "write");
   const b = await readJson<any>(req);
   const body = {
     date: b?.date,
@@ -95,6 +98,6 @@ export const POST = route(async (req) => {
   const { data: full } = await getAdminClient()
     .from("sales").select("*,sales_items(*)").eq("id", sale.id).single();
 
-  await writeAudit("POST", "/api/sales", "sales", sale.id, "create", null, full, 201);
+  await writeAudit("POST", "/api/sales", "sales", sale.id, "create", null, full, 201, req);
   return ok(full, 201);
 });

@@ -1,10 +1,11 @@
 # RPH — Sistem Pencatatan (Frontend)
 
 Digitalisasi pencatatan harian Rumah Potong Hewan (RPH) sesuai PRD.
-**Frontend-only:** state lokal Zustand + mock data. Backend belum dibutuhkan (validasi & kalkulasi stok berjalan real-time di browser).
+**Backend = API Routes** (`src/app/api/*`) — semua CRUD lewat server (service-role Supabase), bukan anon key client. Login wajib (operator/pemilik).
 
 ## Stack
 - **Next.js 14** (App Router) + **TypeScript** + **Tailwind CSS** + **Zustand**
+- **Supabase** (DB) + storage hash/token via `node:crypto` (tanpa dep eksternal)
 
 ## Cara Jalankan
 ```bash
@@ -41,16 +42,33 @@ src/
 | M3 Pengeluaran | `/pengeluaran` | `ExpensesModule` (kategori beban, rekap) |
 | M4 Dashboard | `/` | `DashboardContent` (stat, mini-chart, rekap), `ExportModal` (CSV/JSON/Print) |
 
-## Validasi yang Sudah Berjalan (tanpa backend)
+## Validasi yang Sudah Berjalan
+- **Auth**: semua route `/api/*` butuh sesi JWT (httpOnly cookie). Role `operator` boleh tulis data; `pemilik` read-only (403) tapi boleh kelola akun operator.
 - **Stok menolak minus** — qty penjualan > stok tersedia ⇒ error per-item.
 - **Harga/Qty positif** — ditolak ≤ 0.
 - **Tanggal tidak boleh masa depan** — input `date` dibatasi `max=today` + validasi ulang.
 - **Ayam mati ≤ ayam masuk** — cross-field check di Modul 1.
 
+## Auth & Environment
+
+Jalankan `docs/AUTH_MIGRATION.sql` di Supabase (tambah kolom `password_hash` di `users`).
+
+**Akun pemilik pertama** — sekali jalan, butuh `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`:
+```bash
+npm run admin admin@rph.sch.id "rahasia-kuat"
+```
+Idempotent — email yang sudah ada exit tanpa perubahan. Kalau row-nya ada tapi `password_hash` NULL (akun mati), jalankan ulang dengan `--force` untuk set password.
+
+**Setelah itu**, pemilik bikin akun operator dari `/operator` (nama + email + password). Nggak ada halaman daftar; operator cuma punya `/login`.
+
+Set env (`.env.local` + Vercel):
+| Var | Fungsi |
+|---|---|
+| `JWT_SECRET` | kunci sesi (acak, ≥32 char). Wajib di produksi — kosong = throw |
+
+`requireAuth(req, mode)` punya 3 mode: `read` (semua role), `write` (operator saja), `admin` (pemilik saja).
+
 ## Output & State
 - **Whiteboard** & **Dashboard** = computed dari store (re-derive tiap render, <2 detik).
 - **Invoice 2 rangkap** — klik baris status Selesai/Proses di riwayat → tombol Cetak.
   Layout print ada di `src/app/globals.css` (`@media print`): 2 lembar per A4, garis putus antar rangkap.
-
-## Menyambung Backend Nanti
-Ganti action di `useRPHStore` dengan `fetch` ke API (`/api/...`), dan kompensasi mock-data dengan data server. Interface `types/` sudah siap dijadikan kontrak API.

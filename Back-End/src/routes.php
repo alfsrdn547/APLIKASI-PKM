@@ -24,6 +24,17 @@ function body(Request $req, array $required, array $config = []): array
     return array_replace($config['defaults'] ?? [], array_intersect_key($raw, array_flip($required)));
 }
 
+/** Filter rentang tanggal dari query ?from=&to=. Kembalikan [] kalau nggak ada.
+ *  Nilai dikirim sebagai array [min, max] — Supabase::select()ubah jadi "gte.x,lte.y". */
+function dateRange(Request $req): array
+{
+    $q = $req->getQueryParams();
+    $from = $q['from'] ?? null;
+    $to   = $q['to'] ?? null;
+    if (($from === null || $from === '') && ($to === null || $to === '')) return [];
+    return ['date' => [$from, $to]];
+}
+
 /** Muat product_catalog dari Supabase (single source kode + harga). */
 function loadCatalog(object $db): array
 {
@@ -49,13 +60,7 @@ function loadCatalog(object $db): array
 
 // ── Penerimaan ───────────────────────────────────────────────────────
 $app->get('/incoming', function (Request $req, Response $res) use ($db) {
-    $q = $req->getQueryParams();
-    $f = [];
-    if (!empty($q['from'])) $f['date'] = 'gte.' . $q['from'];
-    if (!empty($q['to']))   $f['date'] = 'lte.' . $q['to'];
-    // Supabase pakai satu syntax; jika gte/lte gak didukung pas ganda, simplify:
-    // (solusi: dua filter gak bisa bareng; alternatif GET separate. Spec pakai from/to ⇒ pakai RPC atau gabung manual.
-    // Untuk scaffold ini: filter `from` saja; to bisa jadi TODO.
+    $f = dateRange($req);
     [$data] = $db->select('incoming', $f, ['order' => 'date.asc']);
     return json($res, $data);
 });
@@ -97,10 +102,7 @@ $app->delete('/incoming/{id}', function (Request $req, Response $res, array $arg
 
 // ── Pemotongan ───────────────────────────────────────────────────────
 $app->get('/butchery', function (Request $req, Response $res) use ($db) {
-    $q = $req->getQueryParams();
-    $f = [];
-    if (!empty($q['from'])) $f['date'] = 'gte.' . $q['from'];
-    if (!empty($q['to']))   $f['date'] = 'lte.' . $q['to'];
+    $f = dateRange($req);
     [$data] = $db->select('butchery', $f, ['order' => 'date.asc']);
     return json($res, $data);
 });
@@ -144,10 +146,8 @@ $app->delete('/butchery/{id}', function (Request $req, Response $res, array $arg
 
 // ── Penjualan ────────────────────────────────────────────────────────
 $app->get('/sales', function (Request $req, Response $res) use ($db) {
+    $f = dateRange($req);
     $q = $req->getQueryParams();
-    $f = [];
-    if (!empty($q['from'])) $f['date'] = 'gte.' . $q['from'];
-    if (!empty($q['to']))   $f['date'] = 'lte.' . $q['to'];
     if (!empty($q['status'])) $f['status'] = 'eq.' . $q['status'];
     [$data] = $db->select('sales', $f, ['order' => 'date.asc', 'select' => '*,sales_items(*)']);
     return json($res, $data);
@@ -252,10 +252,8 @@ $app->delete('/sales/{id}', function (Request $req, Response $res, array $args) 
 
 // ── Pengeluaran ──────────────────────────────────────────────────────
 $app->get('/expenses', function (Request $req, Response $res) use ($db) {
+    $f = dateRange($req);
     $q = $req->getQueryParams();
-    $f = [];
-    if (!empty($q['from'])) $f['date'] = 'gte.' . $q['from'];
-    if (!empty($q['to']))   $f['date'] = 'lte.' . $q['to'];
     if (!empty($q['category'])) $f['category'] = 'eq.' . $q['category'];
     [$data] = $db->select('expenses', $f, ['order' => 'date.asc']);
     return json($res, $data);

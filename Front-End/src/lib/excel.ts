@@ -84,66 +84,161 @@ const EXPENSE_HEADERS = [
 ];
 
 // ─── Template builder ──────────────────────────────────────────────
-function buildIncomingSheet(): XLSX.WorkSheet {
-  const headers = INCOMING_HEADERS.map((h) => h.id);
-  const example = ["2026-09-15", 100, 2, 1, "B 1234 CD", 180, 38000, 0, "Contoh catatan"];
-  const notes = [
-    ["Format tanggal: YYYY-MM-DD", "", "", "", "", "", "", "", ""],
-    ["Status: isi angka, kosong = 0", "", "", "", "", "", "", "", ""],
-  ];
-  return XLSX.utils.aoa_to_sheet([headers, example, ...notes]);
+// Sheet "Import" = HANYA header (row 1). Parser membaca sheet pertama;
+// selain row 1 akan dianggap baris data, jadi tak ada contoh di sini.
+function buildImportSheet(fields: { header: string }[]): { ws: XLSX.WorkSheet; headers: string[] } {
+  const headers = fields.map((f) => f.header);
+  const ws = XLSX.utils.aoa_to_sheet([headers]);
+  return { ws, headers };
 }
 
-function buildButcherySheet(): XLSX.WorkSheet {
-  const headers = ["tanggal", "jumlah_ekor", "catatan", ...KG_PRODUCTS.map((p) => p.code)];
-  const example: (string | number)[] = ["2026-09-15", 50, "Contoh", ...KG_PRODUCTS.map(() => 0)];
-  const notes = [
-    [`Isi qty per produk kg (kolom kanan). Kosong = 0. Total qty > 0 minimal 1 kolom.`],
-  ];
-  return XLSX.utils.aoa_to_sheet([headers, example, ...notes]);
+// Dropdown data-validation untuk kolom enum (Excel/Sheets).
+function addDropdown(ws: XLSX.WorkSheet, colLetter: string, values: string[], rowStart = 2, rowEnd = 1000): void {
+  if (!ws["!dataValidation"]) ws["!dataValidation"] = [];
+  ws["!dataValidation"].push({
+    type: "list",
+    allowBlank: true,
+    formula1: `"${values.join(",")}"`,
+    ranges: [{ sheet: 0, from: { r: rowStart - 1, c: XLSX.utils.decode_col(colLetter) }, to: { r: rowEnd - 1, c: XLSX.utils.decode_col(colLetter) } }],
+  });
 }
 
-function buildSalesSheet(): XLSX.WorkSheet {
-  const headers = SALES_HEADERS.map((h) => h.id);
-  const example = ["2026-09-15", "Toko ABC", "0812xxxx", "BLD", "Boneless Dada", 10, DEFAULT_PRICES["BLD"] ?? 45000, "belum_lunas", "belum_diambil"];
-  const notes = [
-    ["Satu baris per item produk.", "Untuk 1 order, isi baris berbeda dgn tanggal+nama pelanggan yang SAMA.", "Harga satuan dari DEFAULT_PRICES.", "Status: lunas/belum_lunas | sudah_diambil/belum_diambil"],
-  ];
-  return XLSX.utils.aoa_to_sheet([headers, example, ...notes]);
+function buildIncomingSheet() {
+  return buildImportSheet([
+    { header: "tanggal" },
+    { header: "ayam_masuk" },
+    { header: "ayam_mati" },
+    { header: "ayam_cacat" },
+    { header: "nopol" },
+    { header: "tonase_kg" },
+    { header: "harga_per_kg" },
+    { header: "kasbon" },
+    { header: "catatan" },
+  ]);
 }
 
-function buildExpenseSheet(): XLSX.WorkSheet {
-  const headers = EXPENSE_HEADERS.map((h) => h.id);
-  const cats = EXPENSE_CATEGORIES.map((c) => c.value).join(", ");
-  const dirs = EXPENSE_DIRECTIONS.map((d) => d.value).join(", ");
-  const srcs = EXPENSE_SOURCES.map((s) => s.value).join(", ");
-  const example = ["2026-09-15", "es_batu", "keluar", "kas", "Beli es batu 50kg", 75000];
-  const notes = [
-    [`Kategori: ${cats}`],
-    [`Arah: ${dirs}`],
-    [`Sumber: ${srcs}`],
+function buildButcherySheet() {
+  return buildImportSheet([
+    { header: "tanggal" },
+    { header: "jumlah_ekor" },
+    { header: "catatan" },
+    ...KG_PRODUCTS.map((p) => ({ header: p.code })),
+  ]);
+}
+
+function buildSalesSheet() {
+  const { ws, headers } = buildImportSheet([
+    { header: "tanggal" },
+    { header: "nama_pelanggan" },
+    { header: "telepon" },
+    { header: "kode_produk" },
+    { header: "nama_produk" },
+    { header: "quantity" },
+    { header: "harga_satuan" },
+    { header: "status_bayar" },
+    { header: "status_ambil" },
+  ]);
+  addDropdown(ws, "H", ["lunas", "belum_lunas"]);
+  addDropdown(ws, "I", ["sudah_diambil", "belum_diambil"]);
+  return { ws, headers };
+}
+
+function buildExpenseSheet() {
+  const { ws, headers } = buildImportSheet([
+    { header: "tanggal" },
+    { header: "kategori" },
+    { header: "arah" },
+    { header: "sumber" },
+    { header: "deskripsi" },
+    { header: "nominal" },
+  ]);
+  addDropdown(ws, "B", EXPENSE_CATEGORIES.map((c) => c.value));
+  addDropdown(ws, "C", EXPENSE_DIRECTIONS.map((d) => d.value));
+  addDropdown(ws, "D", EXPENSE_SOURCES.map((s) => s.value));
+  return { ws, headers };
+}
+
+// Sheet panduan (tidak dibaca parser — hanya sheet pertama "Import" yang diparse).
+function buildGuideSheet(module: ImportModule): XLSX.WorkSheet {
+  const rows: string[][] = [
+    ["CARA IMPOR DATA — " + module.toUpperCase()],
+    [],
+    ["1. Isi kolom di sheet 'Import' sesuai baris pertama (header). Jangan ubah nama header."],
+    ["2. Format tanggal: YYYY-MM-DD (contoh 2026-09-15). Tanggal masa depan otomatis ditolak."],
   ];
-  return XLSX.utils.aoa_to_sheet([headers, example, ...notes]);
+
+  switch (module) {
+    case "penerimaan":
+      rows.push(
+        ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati · ayam_cacat · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
+        ["4. Angka kosong dianggap 0, kecuali ayam_masuk wajib > 0."],
+        ["5. Contoh baris: 2026-09-15 | 100 | 2 | 1 | B 1234 CD | 180 | 38000 | 0 | Catatan opsional"],
+        ["6. Satu baris = satu penerimaan."]
+      );
+      break;
+    case "pemotongan":
+      rows.push(
+        ["3. 'jumlah_ekor' = jumlah ayam dipotong hari itu."],
+        ["4. Isi qty (kg) di kolom kode produk. Kosong = 0. Minimal satu kolom qty > 0."],
+        ["5. Kode produk valid (kg): " + KG_PRODUCTS.map((p) => `${p.code} (${p.name})`).join(", ") + "."],
+        ["6. Contoh baris: 2026-09-15 | 50 | (catatan) | BLD: 9 | KRKS: 18 | (sisanya 0)"],
+        ["7. Satu baris = satu pemotongan."]
+      );
+      break;
+    case "penjualan":
+      rows.push(
+        ["3. SATU BARIS = SATU ITEM PRODUK. Untuk satu order dengan 2 jenis barang, tulis 2 baris dengan tanggal & nama pelanggan yang SAMA."],
+        ["4. 'kode_produk' wajib ada di katalog. 'nama_produk' bisa dikosongkan (diisi otomatis)."],
+        ["5. 'quantity' & 'harga_satuan' harus > 0. Total order dihitung otomatis."],
+        ["6. 'status_bayar': lunas / belum_lunas. 'status_ambil': sudah_diambil / belum_diambil (dropdown tersedia)."],
+        ["7. Contoh (2 baris = 1 order 2 item):"],
+        ["   2026-09-15 | Toko ABC | 0812xxxx | BLD | | 10 | 45000 | belum_lunas | belum_diambil"],
+        ["   2026-09-15 | Toko ABC | 0812xxxx | CKR | | 5  | 20000 | belum_lunas | belum_diambil"],
+        ["8. Sistem cek stok otomatis; kalau stok kurang baris ditolak."]
+      );
+      break;
+    case "pengeluaran":
+      rows.push(
+        ["3. 'kategori', 'arah', 'sumber' harus pilihan yang tersedia (dropdown tersedia):"],
+        ["   kategori: " + EXPENSE_CATEGORIES.map((c) => c.value).join(", ")],
+        ["   arah: keluar / masuk · sumber: kas / bank / lainnya"],
+        ["4. 'deskripsi' wajib. 'nominal' harus > 0."],
+        ["5. Contoh baris: 2026-09-15 | es_batu | keluar | kas | Beli es batu 50kg | 75000"],
+        ["6. Satu baris = satu pengeluaran."]
+      );
+      break;
+  }
+  rows.push([], ["Setelah selesai isi, simpan & upload file ini lewat menu 'Import Data'."]);
+  return XLSX.utils.aoa_to_sheet(rows);
 }
 
 export function buildTemplate(module: ImportModule): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
+
+  // Sheet 1 "Import" — hanya header (parser baca sheet pertama).
+  let headers: string[];
   let ws: XLSX.WorkSheet;
-  let name: string;
   switch (module) {
-    case "penerimaan":
-      ws = buildIncomingSheet(); name = "Penerimaan"; break;
-    case "pemotongan":
-      ws = buildButcherySheet(); name = "Pemotongan"; break;
-    case "penjualan":
-      ws = buildSalesSheet(); name = "Penjualan"; break;
-    case "pengeluaran":
-      ws = buildExpenseSheet(); name = "Pengeluaran"; break;
+    case "penerimaan":       ({ ws, headers } = buildIncomingSheet()); break;
+    case "pemotongan":       ({ ws, headers } = buildButcherySheet()); break;
+    case "penjualan":        ({ ws, headers } = buildSalesSheet()); break;
+    case "pengeluaran":      ({ ws, headers } = buildExpenseSheet()); break;
   }
-  // column widths for readability
+
+  // Freeze header + filter autofilter + trap header jangan diubah.
+  ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }) };
+  // Col widths.
   const range = XLSX.utils.decode_range(ws["!ref"] ?? "A1");
-  ws["!cols"] = Array.from({ length: range.e.c + 1 }, () => ({ wch: 16 }));
-  XLSX.utils.book_append_sheet(wb, ws, name);
+  ws["!cols"] = Array.from({ length: Math.max(range.e.c + 1, headers.length) }, () => ({ wch: 16 }));
+
+  XLSX.utils.book_append_sheet(wb, ws, "Import");
+
+  // Sheet 2 "Cara Pakai" — panduan user (tak diparse).
+  const guide = buildGuideSheet(module);
+  const gr = XLSX.utils.decode_range(guide["!ref"] ?? "A1");
+  guide["!cols"] = [{ wch: 100 }];
+  XLSX.utils.book_append_sheet(wb, guide, "Cara Pakai");
   return wb;
 }
 

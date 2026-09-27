@@ -1,6 +1,8 @@
 import { getAdminClient } from "./supabase-server";
+import { getSession } from "./auth";
 
-/** Tulis audit_log (server-side) utk tiap aksi write. */
+/** Tulis audit_log (server-side) utk tiap aksi write.
+ *  actor diisi dari session user bila ada (email#role), else "api". */
 export async function writeAudit(
   method: string,
   path: string,
@@ -9,11 +11,19 @@ export async function writeAudit(
   action: "create" | "update" | "delete",
   before: unknown,
   after: unknown,
-  status: number
+  status: number,
+  req?: Request
 ): Promise<void> {
+  let actor = "api";
   try {
-    await getAdminClient().from("audit_log").insert({
-      actor: "api",
+    if (req) {
+      const u = await getSession(req);
+      if (u) actor = `${u.email}#${u.role}`;
+    }
+    // Supabase-js nggak throw — error dikembalikan di `.error`, bukan dilempar.
+    // Cek manual, kalau nggak audit gagal diam-dim selamanya.
+    const { error } = await getAdminClient().from("audit_log").insert({
+      actor,
       method,
       path,
       entity,
@@ -22,7 +32,9 @@ export async function writeAudit(
       changes: { before: before ?? null, after: after ?? null },
       status_code: status,
     });
-  } catch {
+    if (error) console.error(`[audit] gagal tulis ${method} ${path}:`, error.message);
+  } catch (e) {
     // jangan gagalkan request utama kalau audit gagal
+    console.error(`[audit] error tak terduga ${method} ${path}:`, e);
   }
 }

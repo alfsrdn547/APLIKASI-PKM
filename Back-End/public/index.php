@@ -32,18 +32,46 @@ $app->addErrorMiddleware(false, true, true)
         return $res->withHeader('Content-Type', 'application/json');
     });
 
-// ── Auth middleware (JWT Supabase) ───────────────────────────────────
+// ── Auth middleware ──────────────────────────────────────────────────
+// Terima 2 bentuk token: session HMAC buatan FE, atau Supabase JWT.
+// FE sekarang kirim yang pertama (cookie httpOnly, bukan Supabase Auth).
 $auth = function (Request $request, Response $response, callable $next) use ($config): Response {
     $h = $request->getHeaderLine('Authorization');
     if (!preg_match('/^Bearer\s+(\S+)$/', $h, $m)) {
         throw new ApiException('UNAUTHORIZED', 'Token tidak ada', [], 401);
     }
-    try {
-        $claims = (array) JWT::decode($m[1], $config['supabase_jwt_secret'], ['HS256']);
-        $request = $request->withAttribute('actor', $claims['sub'] ?? $claims['email'] ?? 'anonymous');
-    } catch (\Throwable) {
+    $token = $m[1];
+
+    $claims = null;
+    // 1) Session FE — HS256, sama seperti src/lib/auth.ts createSessionToken().
+    if ($config['session_secret'] !== '') {
+        $parts = explode('.', $token);
+        if (count($parts) === 3) {
+            [$h64, $p64, $sig] = $parts;
+            $expected = rtrim(strtr(base64_encode(
+                hash_hmac('sha256', "$h64.$p64", $config['session_secret'], true)
+            ), '+/', '-_'), '=');
+            if (hash_equals($expected, $sig)) {
+                $payload = json_decode(base64_decode(strtr($p64, '-_', '+/')), true);
+                if (is_array($payload) && isset($payload['exp']) && $payload['exp'] >= time()) {
+                    $claims = $payload;
+                }
+            }
+        }
+    }
+    // 2) Supabase JWT — kalau session HMAC gak cocok.
+    if ($claims === null && $config['supabase_jwt_secret'] !== '') {
+        try {
+            $claims = (array) JWT::decode($token, $config['supabase_jwt_secret'], ['HS256']);
+        } catch (\Throwable) {
+            throw new ApiException('UNAUTHORIZED', 'Token tidak valid', [], 401);
+        }
+    }
+    if ($claims === null) {
         throw new ApiException('UNAUTHORIZED', 'Token tidak valid', [], 401);
     }
+
+    $request = $request->withAttribute('actor', $claims['sub'] ?? $claims['email'] ?? 'anonymous');
     /** @var Response $r */
     $r = $next($request, $response);
     return $r;
@@ -83,6 +111,10 @@ $app->get('/products', function (Request $req, Response $res) {
         'avgWeightPerEkor' => 1.8,
     ]));
     return $res->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/products', function (Request $req, Response $res) {
+    throw new ApiException('VALIDATION_ERROR', 'POST /products tidak diperlukan', [], 400);
 });
 
 // …resource routes dimuat dari file tersendiri

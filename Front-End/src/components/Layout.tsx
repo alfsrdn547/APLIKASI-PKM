@@ -14,7 +14,10 @@ const NAV_ITEMS = [
   { href: "/papan-tulis", label: "Papan Tulis", icon: "📋" },
   { href: "/penjualan", label: "Penjualan", icon: "🧾" },
   { href: "/pengeluaran", label: "Pengeluaran", icon: "💸" },
+  { href: "/operator", label: "Operator", icon: "👥" },
 ];
+
+type AuthUser = { id: string; email: string; fullName: string; role: "operator" | "pemilik" };
 
 export function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -23,6 +26,29 @@ export function Layout({ children }: { children: ReactNode }) {
   const error = useRPHStore((s) => s.error);
   const fetchedOnce = useRef(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Cek sesi via /api/auth/me — 401 → redirect ke /login.
+  // Halaman login TIDAK memakai Layout (route group (auth)).
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const me = await res.json().catch(() => ({}));
+        if (res.ok && me?.data) {
+          setUser(me.data);
+        } else {
+          window.location.href = "/login";
+          return;
+        }
+      } catch {
+        window.location.href = "/login";
+      } finally {
+        setAuthChecked(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!fetchedOnce.current) {
@@ -30,6 +56,17 @@ export function Layout({ children }: { children: ReactNode }) {
       fetchAll();
     }
   }, [fetchAll]);
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // tetap redirect
+    }
+    window.location.href = "/login";
+  };
+
+  if (!authChecked) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
@@ -55,21 +92,36 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setImportOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
-            >
-              <span>⬆️</span>
-              Import Data
-            </button>
+            {user?.role === "operator" && (
+              <button
+                onClick={() => setImportOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
+              >
+                <span>⬆️</span>
+                Import Data
+              </button>
+            )}
             <span className="hidden rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 sm:inline">
               ● Sinkronisasi Real-time
             </span>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
-                A
+                {user?.fullName?.charAt(0) ?? "A"}
               </div>
-              <span className="text-sm text-gray-700">Admin RPH</span>
+              <div className="text-right leading-tight">
+                <span className="block text-sm text-gray-700">
+                  {user?.fullName ?? "—"}
+                </span>
+                <span className="block text-xs capitalize text-gray-400">
+                  {user?.role === "pemilik" ? "Pemilik (baca)" : "Operator"}
+                </span>
+              </div>
+              <button
+                onClick={logout}
+                className="ml-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
+              >
+                Keluar
+              </button>
             </div>
           </div>
         </div>
@@ -84,6 +136,8 @@ export function Layout({ children }: { children: ReactNode }) {
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            // Menu Operator khusus pemilik.
+            if (item.href === "/operator" && user?.role !== "pemilik") return null;
             return (
               <Link
                 key={item.href}
@@ -104,6 +158,11 @@ export function Layout({ children }: { children: ReactNode }) {
 
         {/* Main content */}
         <main className="min-w-0 flex-1 px-6 py-6">
+          {user?.role === "pemilik" && (
+            <p className="mb-4 rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700">
+              Mode baca — akun pemilik. Perubahan data hanya boleh oleh operator.
+            </p>
+          )}
           {loading && (
             <p className="mb-4 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
               Memuat data…
