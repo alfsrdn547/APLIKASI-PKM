@@ -1,6 +1,11 @@
 # dependencies
 node_modules/
 
+# root bukan project — dependency ada di Front-End/ & Back-End/.
+# Jaga agar `npm install`/`npx` yang nyasar di root nggak ikut ter-commit/ter-deploy.
+/package.json
+/package-lock.json
+
 # next.js
 .next/
 out/
