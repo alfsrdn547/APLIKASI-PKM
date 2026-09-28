@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import type { SalesOrder } from "@/types";
 import { formatRp, formatDisplayDate } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -107,8 +106,6 @@ function InvoiceSheet({ order, variant }: { order: SalesOrder; variant: "admin" 
 
 // ─── Wrapper: 2 rangkap A4 ───────────────────────────────────────────
 export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
-  const printRef = useRef<HTMLDivElement>(null);
-
   const handlePrint = () => {
     // Print only via CSS media query — no iframe juggling needed
     window.print();
@@ -153,7 +150,7 @@ export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
         </div>
 
         {/* Print-only layout — exact 2 rangkap for CSS @media print */}
-        <div ref={printRef} className="print-2up hidden print:block">
+        <div className="print-2up hidden print:block">
           <InvoiceSheet order={order} variant="admin" />
           <div className="print-cut-line" />
           <InvoiceSheet order={order} variant="customer" />

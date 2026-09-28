@@ -39,10 +39,19 @@ function MiniBarChart({
 }
 
 export function DashboardContent() {
+  // Dependensi harus data-nya, bukan action store (referensinya stabil →
+  // memo nggak pernah invalidated, dashboard stale setelah import/tambah).
+  const incoming = useRPHStore((s) => s.incoming);
+  const sales = useRPHStore((s) => s.sales);
+  const expenses = useRPHStore((s) => s.expenses);
   const getDailySummaries = useRPHStore((s) => s.getDailySummaries);
   const [exportOpen, setExportOpen] = useState(false);
 
-  const summaries = useMemo(() => getDailySummaries(), [getDailySummaries]);
+  const summaries = useMemo(
+    () => getDailySummaries(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getDailySummaries, incoming, sales, expenses]
+  );
   const prev = summaries[summaries.length - 2];
 
   const totals = useMemo(() => {

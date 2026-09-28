@@ -27,6 +27,11 @@ export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(
   PRODUCTS.map((p) => [p.code, p])
 );
 
+// Kode yang boleh muncul di tabel parts (produk satuan kg — KPL "ekor" tidak).
+export const KG_CODES: readonly string[] = PRODUCTS
+  .filter((p) => p.unit === "kg")
+  .map((p) => p.code);
+
 // ─── Kategori Pengeluaran ────────────────────────────────────────────
 export const EXPENSE_CATEGORIES = [
   { value: "es_batu",         label: "Es Batu" },

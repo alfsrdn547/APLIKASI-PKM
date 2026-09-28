@@ -5,11 +5,11 @@ import { writeAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
-// KWhole user management. Semua |= pemilik — operator tak bisa kelola akun.
+// User management. Semua |= pemilik — operator tak bisa kelola akun.
 
-// GET /api/users — daftar akun (pemilik lihat semua).
+// GET /api/users — daftar akun.
 export const GET = route(async (req) => {
-  await requireAuth(req, "read");
+  await requireAuth(req, "admin");
   const { data } = await getAdminClient()
     .from("users")
     .select("id,email,full_name,role,active,created_at")
@@ -19,7 +19,7 @@ export const GET = route(async (req) => {
 
 // POST /api/users — pemilik bikin akun operator baru.
 export const POST = route(async (req) => {
-  requireAuth(req, "admin");
+  await requireAuth(req, "admin");
   const b = await readJson<{ fullName?: string; email?: string; password?: string }>(req);
   const fullName = String(b?.fullName ?? "").trim();
   const email = String(b?.email ?? "").trim().toLowerCase();

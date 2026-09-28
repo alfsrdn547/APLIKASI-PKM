@@ -17,6 +17,11 @@ build/
 .DS_Store
 *.pem
 
+# AI/tooling config — lokal saja, jangan pernah ikut commit
+.claude/
+.cursor/
+.aider*
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -3,6 +3,7 @@ import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
 import { assertNotFuture, checkSaleStock, isOneOf, PAY_STATUSES, PICKUP_STATUSES, ORDER_STATUSES } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
+import { PRODUCTS } from "@/constants/products";
 
 export const dynamic = "force-dynamic";
 
@@ -50,12 +51,21 @@ export const POST = route(async (req) => {
   const items = body.items
     .map((i: any) => ({
       productCode: String(i.productCode ?? ""),
-      productName: String(i.productName ?? i.productCode ?? ""),
       quantity: Number(i.quantity),
       unitPrice: Number(i.unitPrice),
     }))
     .filter((i: any) => i.quantity > 0 && i.unitPrice > 0 && i.productCode);
   if (items.length === 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { items: "quantity & unitPrice harus > 0" }, 400);
+
+  // productCode harus ada di katalog — kalau nggak, insert sales_items kena FK
+  // dan muncul sebagai 500 DB_ERROR, bukan 400 yang bisa dibaca user.
+  // productName juga diambil dari katalog, bukan dipercaya dari client.
+  const catalog = Object.fromEntries(PRODUCTS.map((p) => [p.code, p.name]));
+  for (const it of items) {
+    if (!catalog[it.productCode])
+      throw new ApiError("VALIDATION_ERROR", "Data tidak valid",
+        { items: `Kode produk "${it.productCode}" tidak dikenal` }, 400);
+  }
 
   // Stock check sebelum insert — manual butchery = sumber
   const stockErr = await checkSaleStock(getAdminClient(), body.date, items);
@@ -83,7 +93,7 @@ export const POST = route(async (req) => {
   const itemRows = items.map((i: any) => ({
     sales_id: sale.id,
     product_code: i.productCode,
-    product_name: i.productName,
+    product_name: catalog[i.productCode],
     quantity: i.quantity,
     unit_price: i.unitPrice,
   }));

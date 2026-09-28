@@ -81,16 +81,15 @@ export function SalesForm() {
       const price = parseFloat(it.price);
       const product = PRODUCTS.find((p) => p.code === it.productCode)!;
 
-      const stock = getStock(it.productCode);
+      // Cek harga DULU: kalau harga invalid, qty-nya bisa di-parse dan stok
+      // dibandingkan dengan angka NaN — pesan error-nya jadi misleading.
       let itemErr = "";
-
-      if (!it.quantity || isNaN(qty) || !isPositive(qty))
-        itemErr = "Qty harus angka positif";
-      else if (qty > stock.available)
-        itemErr = `Stok tidak cukup (tersedia ${stock.available.toFixed(0)})`;
-
       if (!it.price || isNaN(price) || !isPositive(price))
-        itemErr = itemErr || "Harga harus angka positif";
+        itemErr = "Harga harus angka positif";
+      else if (!it.quantity || isNaN(qty) || !isPositive(qty))
+        itemErr = "Qty harus angka positif";
+      else if (qty > getStock(it.productCode).available)
+        itemErr = `Stok tidak cukup (tersedia ${getStock(it.productCode).available.toFixed(0)})`;
 
       return { it, product, qty, price, itemErr };
     });

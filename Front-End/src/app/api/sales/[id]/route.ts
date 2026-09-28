@@ -1,6 +1,6 @@
 import { getAdminClient } from "@/lib/supabase-server";
 import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
-import { isOneOf, ORDER_STATUSES } from "@/lib/validator";
+import { isOneOf, ORDER_STATUSES, PAY_STATUSES, PICKUP_STATUSES } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
 
@@ -15,15 +15,26 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
   const id = idOf(ctx);
 
   const { data: old } = await getAdminClient().from("sales").select("*").eq("id", id).single();
+  if (!old) throw new ApiError("NOT_FOUND", "Penjualan tidak ditemukan", {}, 404);
 
   const patch: Record<string, unknown> = {};
   if (b?.status !== undefined) {
     if (!isOneOf(ORDER_STATUSES, b.status)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { status: "Tidak valid" }, 400);
     patch.status = b.status;
   }
-  if (b?.payStatus !== undefined) patch.pay_status = b.payStatus;
-  if (b?.pickupStatus !== undefined) patch.pickup_status = b.pickupStatus;
-  if (b?.paidAmount !== undefined) patch.paid_amount = Number(b.paidAmount);
+  if (b?.payStatus !== undefined) {
+    if (!isOneOf(PAY_STATUSES, b.payStatus)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { payStatus: "Tidak valid" }, 400);
+    patch.pay_status = b.payStatus;
+  }
+  if (b?.pickupStatus !== undefined) {
+    if (!isOneOf(PICKUP_STATUSES, b.pickupStatus)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { pickupStatus: "Tidak valid" }, 400);
+    patch.pickup_status = b.pickupStatus;
+  }
+  if (b?.paidAmount !== undefined) {
+    const paid = Number(b.paidAmount);
+    if (!isFinite(paid) || paid < 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { paidAmount: "Harus angka ≥ 0" }, 400);
+    patch.paid_amount = paid;
+  }
 
   if (Object.keys(patch).length === 0) throw new ApiError("VALIDATION_ERROR", "Tidak ada field diubah", {}, 400);
 

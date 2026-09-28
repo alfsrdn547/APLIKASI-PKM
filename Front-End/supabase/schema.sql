@@ -175,6 +175,8 @@ create table if not exists public.audit_log (
   created_at  timestamptz not null default now()
 );
 
+alter table public.audit_log enable row level security;
+
 -- ── RLS sales_items + product_catalog ──────────────────────────────────
 alter table public.sales_items  enable row level security;
 alter table public.product_catalog enable row level security;
@@ -188,22 +190,3 @@ create policy "anon delete sales_items" on public.sales_items for delete using (
 
 drop policy if exists "anon read product_catalog" on public.product_catalog;
 create policy "anon read product_catalog" on public.product_catalog for select using (true);
-
--- ── Audit Log (backend service_role) ───────────────────────────────────
--- Ditulis oleh backend (service_role), TIDAK di-expose ke anon.
--- service_role bypass RLS, jadi cukup enable tanpa policy publik.
-create table if not exists public.audit_log (
-  id          uuid primary key default gen_random_uuid(),
-  actor       text not null default 'anonymous',
-  method      text not null,
-  path        text not null,
-  entity      text not null,
-  entity_id   uuid,
-  action      text not null,          -- create | update | delete
-  changes     jsonb not null default '{}',   -- {before, after}
-  status_code smallint not null,
-  ip          text,
-  created_at  timestamptz not null default now()
-);
-
-alter table public.audit_log enable row level security;

@@ -128,7 +128,9 @@ export function verifyPassword(plain: string, stored: string): boolean {
 /** Require auth.
  *  read  → semua role
  *  write → operator saja (pemilik read-only pada data)
- *  admin → pemilik saja (kelola operator:odied, bukan data) */
+ *  admin → pemilik saja (kelola akun, bukan data)
+ *  Panggil dengan `await` — tanpa itu promise-nya nggak pernah ditunggu dan
+ *  pengecekan auth dilewati. */
 export async function requireAuth(
   req: Request,
   mode: "read" | "write" | "admin" = "read"

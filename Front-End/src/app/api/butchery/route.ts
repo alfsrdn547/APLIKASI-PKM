@@ -3,14 +3,10 @@ import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
 import { assertNotFuture } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
+import { KG_CODES } from "@/constants/products";
 
 export const dynamic = "force-dynamic";
 type Ctx = { params: { id: string } };
-
-const KG_CODES = [
-  "PC","KRKS","BLD","BLD-K","BLP","BLP-K","PAHA-P","PAHA-U","PAHA-A",
-  "SAYAP-B","SAYAP-R","CKR","KULIT","USUS","ATI","TULANG",
-];
 
 // GET /api/butchery
 export const GET = route(async (req) => {

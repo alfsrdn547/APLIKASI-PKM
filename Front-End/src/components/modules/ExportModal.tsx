@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { DailySummaryRow } from "@/types/dashboard";
 import { useRPHStore } from "@/stores/useRPHStore";
 import { Button } from "@/components/ui/Button";
@@ -23,15 +23,19 @@ interface ExportRow {
 }
 
 export function ExportModal({ open, onClose }: ExportModalProps) {
+  const incoming = useRPHStore((s) => s.incoming);
+  const sales = useRPHStore((s) => s.sales);
+  const expenses = useRPHStore((s) => s.expenses);
   const getDailySummaries = useRPHStore((s) => s.getDailySummaries);
   const [format, setFormat] = useState<"csv" | "json" | "print">("csv");
   const [range, setRange] = useState<"7d" | "14d" | "30d">("7d");
 
-  const summaries = getDailySummaries();
-  const cutoff = (() => {
-    const n = range === "7d" ? 7 : range === "14d" ? 14 : 30;
-    return Date.now() - n * 24 * 60 * 60 * 1000;
-  })();
+  const summaries = useMemo(
+    () => getDailySummaries(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getDailySummaries, incoming, sales, expenses]
+  );
+  const cutoff = Date.now() - (range === "7d" ? 7 : range === "14d" ? 14 : 30) * 24 * 60 * 60 * 1000;
   const filtered = summaries.filter((s) => new Date(s.date).getTime() >= cutoff);
 
   if (!open) return null;

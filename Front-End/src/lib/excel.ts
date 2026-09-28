@@ -236,7 +236,6 @@ export function buildTemplate(module: ImportModule): XLSX.WorkBook {
 
   // Sheet 2 "Cara Pakai" — panduan user (tak diparse).
   const guide = buildGuideSheet(module);
-  const gr = XLSX.utils.decode_range(guide["!ref"] ?? "A1");
   guide["!cols"] = [{ wch: 100 }];
   XLSX.utils.book_append_sheet(wb, guide, "Cara Pakai");
   return wb;
@@ -275,12 +274,16 @@ function toNum(v: unknown): number {
   return isNaN(n) ? 0 : n;
 }
 
+// sheet_to_json meng-key baris by NAMA HEADER (bukan huruf kolom).
+function normalizeHeader(h: string): string {
+  return h.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
 function buildHeaderMap(headers: string[], spec: { id: string; field: string }[]): Record<string, string> {
   const map: Record<string, string> = {};
-  for (let i = 0; i < headers.length; i++) {
-    const h = headers[i]?.trim().toLowerCase().replace(/\s+/g, "_") ?? "";
-    const found = spec.find((s) => s.id === h);
-    if (found) map[String.fromCharCode(65 + i)] = found.field; // col letter → field
+  for (const h of headers) {
+    const found = spec.find((s) => s.id === normalizeHeader(h));
+    if (found) map[normalizeHeader(h)] = found.field;
   }
   return map;
 }
@@ -288,10 +291,9 @@ function buildHeaderMap(headers: string[], spec: { id: string; field: string }[]
 function parseRows(rows: Record<string, unknown>[], headerMap: Record<string, string>): Record<string, unknown>[] {
   return rows.map((raw) => {
     const out: Record<string, unknown> = {};
-    // re-key by field name using headerMap
-    for (const colLetter of Object.keys(raw)) {
-      const field = headerMap[colLetter];
-      if (field) out[field] = raw[colLetter];
+    for (const key of Object.keys(raw)) {
+      const field = headerMap[normalizeHeader(key)];
+      if (field) out[field] = raw[key];
     }
     return out;
   });

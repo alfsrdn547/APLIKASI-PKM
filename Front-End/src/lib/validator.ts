@@ -1,4 +1,12 @@
 import { ApiError } from "./apiResponse";
+import {
+  EXPENSE_CATEGORIES as EXPENSE_CATEGORY_LIST,
+  EXPENSE_DIRECTIONS as EXPENSE_DIRECTION_LIST,
+  EXPENSE_SOURCES as EXPENSE_SOURCE_LIST,
+  ORDER_STATUSES as ORDER_STATUS_LIST,
+  PAY_STATUSES as PAY_STATUS_LIST,
+  PICKUP_STATUSES as PICKUP_STATUS_LIST,
+} from "@/constants/products";
 
 // ─── Validasi server-side (mirror Back-End/Validator.php) ─────────────
 
@@ -12,15 +20,20 @@ export function assertNotFuture(date: unknown): void {
   }
 }
 
-export const PAY_STATUSES = ["lunas", "belum_lunas"] as const;
-export const PICKUP_STATUSES = ["sudah_diambil", "belum_diambil"] as const;
-export const ORDER_STATUSES = ["pending", "processing", "completed", "cancelled"] as const;
-export const EXPENSE_CATEGORIES = ["es_batu", "biaya_angkut", "pakan", "operasional_alat", "lainnya"] as const;
-export const EXPENSE_DIRECTIONS = ["keluar", "masuk"] as const;
-export const EXPENSE_SOURCES = ["kas", "bank", "lainnya"] as const;
+// Enum values diturunkan dari constants/products.ts (sumber tunggal) supaya
+// validasi server & label UI nggak bisa berbeda.
+const values = <T extends readonly { value: string }[]>(list: T) =>
+  list.map((x) => x.value) as unknown as readonly string[];
 
-export function isOneOf<T extends readonly string[]>(arr: T, v: unknown): v is T[number] {
-  return typeof v === "string" && (arr as readonly string[]).includes(v);
+export const PAY_STATUSES = values(PAY_STATUS_LIST);
+export const PICKUP_STATUSES = values(PICKUP_STATUS_LIST);
+export const ORDER_STATUSES = values(ORDER_STATUS_LIST);
+export const EXPENSE_CATEGORIES = values(EXPENSE_CATEGORY_LIST);
+export const EXPENSE_DIRECTIONS = values(EXPENSE_DIRECTION_LIST);
+export const EXPENSE_SOURCES = values(EXPENSE_SOURCE_LIST);
+
+export function isOneOf(arr: readonly string[], v: unknown): v is string {
+  return typeof v === "string" && arr.includes(v);
 }
 
 // ─── Cek stok sales (manual butchery = sumber) ────────────────────────
