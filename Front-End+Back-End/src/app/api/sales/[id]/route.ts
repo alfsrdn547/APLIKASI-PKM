@@ -5,14 +5,16 @@ import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
-type Ctx = { params: { id: string } };
-const idOf = (ctx: Ctx) => ctx.params.id;
+// Next.js 15+: `params` itu Promise, bukan object. `ctx.params.id` tanpa
+// await = undefined (diam-diam), bikin query 0 baris → 404 palsu.
+type Ctx = { params: Promise<{ id: string }> };
+const idOf = async (ctx: Ctx) => (await ctx.params).id;
 
 // PATCH /api/sales/[id] — ubah status / pay / pickup / paid
 export const PATCH = route(async (req: Request, ctx: Ctx) => {
   await requireAuth(req, "write");
   const b = await readJson<any>(req);
-  const id = idOf(ctx);
+  const id = await idOf(ctx);
 
   const { data: old, error: oldErr } = await getAdminClient()
     .from("sales")
@@ -64,7 +66,7 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
 // DELETE /api/sales/[id] — hapus (sales_items cascade)
 export const DELETE = route(async (req: Request, ctx: Ctx) => {
   await requireAuth(req, "write");
-  const id = idOf(ctx);
+  const id = await idOf(ctx);
   const { data: old, error: oldErr } = await getAdminClient()
     .from("sales")
     .select("*")
