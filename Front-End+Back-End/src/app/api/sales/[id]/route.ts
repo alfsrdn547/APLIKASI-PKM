@@ -14,7 +14,15 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
   const b = await readJson<any>(req);
   const id = idOf(ctx);
 
-  const { data: old } = await getAdminClient().from("sales").select("*").eq("id", id).single();
+  const { data: old, error: oldErr } = await getAdminClient()
+    .from("sales")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (oldErr) {
+    console.error(`[sales/${id}] select error:`, oldErr.message);
+    throw new ApiError("DB_ERROR", "Gagal memuat transaksi", {}, 500);
+  }
   if (!old) throw new ApiError("NOT_FOUND", "Penjualan tidak ditemukan", {}, 404);
 
   const patch: Record<string, unknown> = {};
@@ -38,8 +46,16 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
 
   if (Object.keys(patch).length === 0) throw new ApiError("VALIDATION_ERROR", "Tidak ada field diubah", {}, 400);
 
-  const { data: updated, error } = await getAdminClient().from("sales").update(patch).eq("id", id).select().single();
+  // `.maybeSingle()`: 0 baris ke-update → null (bukan error), biar bisa
+  // dibedakan dari DB error dan dikasih 404 yang tepat.
+  const { data: updated, error } = await getAdminClient()
+    .from("sales")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
   if (error) throw new ApiError("DB_ERROR", error.message, {}, 500);
+  if (!updated) throw new ApiError("NOT_FOUND", "Penjualan tidak ditemukan", {}, 404);
 
   await writeAudit("PATCH", `/api/sales/${id}`, "sales", id, "update", old, updated, 200, req);
   return ok(updated);
@@ -49,7 +65,15 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
 export const DELETE = route(async (req: Request, ctx: Ctx) => {
   await requireAuth(req, "write");
   const id = idOf(ctx);
-  const { data: old } = await getAdminClient().from("sales").select("*").eq("id", id).single();
+  const { data: old, error: oldErr } = await getAdminClient()
+    .from("sales")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (oldErr) {
+    console.error(`[sales/${id}] select error:`, oldErr.message);
+    throw new ApiError("DB_ERROR", "Gagal memuat transaksi", {}, 500);
+  }
   if (!old) throw new ApiError("NOT_FOUND", "Penjualan tidak ditemukan", {}, 404);
 
   const { error } = await getAdminClient().from("sales").delete().eq("id", id);

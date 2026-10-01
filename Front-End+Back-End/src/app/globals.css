@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 /* ────────────────────────────────────────────────
+   Dark mode
+   Diaktifkan lewat class `dark` di <html> oleh next-themes.
+   ──────────────────────────────────────────────── */
+
+/* ────────────────────────────────────────────────
    Print — Invoice 2 Rangkap (A4)
    Strategi: sembunyikan semua, tampilkan hanya .print-2up
    ──────────────────────────────────────────────── */
@@ -50,6 +55,27 @@
   .print-cut-line {
     display: none;
   }
+
+  /* Kertas selalu putih + teks hitam, apa pun tema layarnya.
+     Tanpa ini, dark: utilities membuat invoice tercetak dengan teks putih
+     di atas kertas putih. !important diperlukan karena utility dark: menang
+     dari cascade biasa.
+     Border sengaja TIDAK dipaksa: dark:border-* tetap gelap di atas kertas
+     putih, jadi garis tetap terbaca, sementara memaksa warnanya justru
+     meratakan garis tebal kop invoice jadi abu-abu pucat.
+     Teks dipaksa monokrom karena printer RPH umumnya printer thermal. */
+  .print-2up,
+  .print-2up *,
+  .print-report-sheet,
+  .print-report-sheet * {
+    background: transparent !important;
+    color: #111827 !important;
+  }
+
+  .invoice-sheet,
+  .print-report-sheet {
+    background: #fff !important;
+  }
 }
 
 /* ────────────────────────────────────────────────
@@ -63,6 +89,15 @@
   background: #cbd5e1;
   border-radius: 4px;
 }
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #111827;
+}
+
 /* ────────────────────────────────────────────────
    Print: laporan rekap (ExportModal)
    Saat body pakai .printing-report, sembunyikan

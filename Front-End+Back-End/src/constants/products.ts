@@ -55,21 +55,21 @@ export const EXPENSE_SOURCES = [
 
 // ─── Status Pesanan ──────────────────────────────────────────────────
 export const ORDER_STATUSES = [
-  { value: "pending",    label: "Pending",    color: "text-yellow-600 bg-yellow-50" },
-  { value: "processing", label: "Proses",     color: "text-blue-600 bg-blue-50" },
-  { value: "completed",  label: "Selesai",    color: "text-green-600 bg-green-50" },
-  { value: "cancelled",  label: "Dibatalkan",  color: "text-red-600 bg-red-50" },
+  { value: "pending",    label: "Pending",    color: "text-yellow-600 bg-yellow-50 dark:text-yellow-300 dark:bg-yellow-950" },
+  { value: "processing", label: "Proses",     color: "text-blue-600 bg-blue-50 dark:text-blue-300 dark:bg-blue-950" },
+  { value: "completed",  label: "Selesai",    color: "text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-950" },
+  { value: "cancelled",  label: "Dibatalkan",  color: "text-red-600 bg-red-50 dark:text-red-300 dark:bg-red-950" },
 ] as const;
 
 // ─── Status Pembayaran (PRD Modul 3) ─────────────────────────────────
 export const PAY_STATUSES = [
-  { value: "lunas",       label: "Lunas",       color: "text-green-600 bg-green-50" },
-  { value: "belum_lunas", label: "Belum Lunas", color: "text-amber-600 bg-amber-50" },
+  { value: "lunas",       label: "Lunas",       color: "text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-950" },
+  { value: "belum_lunas", label: "Belum Lunas", color: "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950" },
 ] as const;
 
 export const PICKUP_STATUSES = [
-  { value: "sudah_diambil",    label: "Sudah Diambil",   color: "text-green-600 bg-green-50" },
-  { value: "belum_diambil",    label: "Belum Diambil",   color: "text-amber-600 bg-amber-50" },
+  { value: "sudah_diambil",    label: "Sudah Diambil",   color: "text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-950" },
+  { value: "belum_diambil",    label: "Belum Diambil",   color: "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950" },
 ] as const;
 
 // ─── Harga Default (Rp per kg) ───────────────────────────────────────

@@ -151,9 +151,9 @@ export function ButcherForm() {
 
         {/* Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {countNum > 0 ? (
-              <>Estimasi: <span className="font-medium text-gray-700">{countNum * AVG_WEIGHT_PER_EKOR} kg</span> ({countNum} ekor × 1.8 kg)</>
+              <>Estimasi: <span className="font-medium text-gray-700 dark:text-gray-300">{countNum * AVG_WEIGHT_PER_EKOR} kg</span> ({countNum} ekor × 1.8 kg)</>
             ) : (
               "Masukkan jumlah ekor untuk mengisi distribusi otomatis."
             )}
@@ -170,7 +170,7 @@ export function ButcherForm() {
 
         {/* Breakdown grid */}
         <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="grid grid-cols-12 gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <div className="col-span-2">Kode</div>
             <div className="col-span-6">Produk</div>
             <div className="col-span-2">Qty (kg)</div>
@@ -181,10 +181,10 @@ export function ButcherForm() {
             return (
               <div
                 key={p.code}
-                className="grid grid-cols-12 items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"
+                className="grid grid-cols-12 items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
               >
                 <div className="col-span-2 font-mono text-sm font-medium">{p.code}</div>
-                <div className="col-span-6 text-sm text-gray-700">{p.name}</div>
+                <div className="col-span-6 text-sm text-gray-700 dark:text-gray-300">{p.name}</div>
                 <div className="col-span-2">
                   <Input
                     type="number"
@@ -197,7 +197,7 @@ export function ButcherForm() {
                     className="px-2 py-1 text-sm"
                   />
                 </div>
-                <div className="col-span-2 text-right font-mono text-sm text-gray-500">
+                <div className="col-span-2 text-right font-mono text-sm text-gray-500 dark:text-gray-400">
                   {q > 0 ? `Rp ${Math.round(q * (DEFAULT_PRICES[p.code] || 0)).toLocaleString("id-ID")}` : ""}
                 </div>
               </div>
@@ -207,10 +207,10 @@ export function ButcherForm() {
 
         {errors.parts && <p className="text-sm text-red-600">{errors.parts}</p>}
 
-        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-800">
           <div className="text-sm">
-            <span className="text-gray-500">Total: </span>
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">Total: </span>
+            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {totalKg.toFixed(1)} kg
             </span>
           </div>

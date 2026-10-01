@@ -22,11 +22,18 @@ export const POST = route(async (req) => {
   if (!password) fields.password = "Password wajib diisi";
   if (Object.keys(fields).length) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", fields, 400);
 
-  const { data: user } = await getAdminClient()
+  const { data: user, error } = await getAdminClient()
     .from("users")
     .select("id,email,full_name,role,active,password_hash")
     .eq("email", email)
     .maybeSingle();
+
+  // Error DB (bukan sekadar user nggak ketemu) jangan disamarkan jadi
+  // "password salah" — bedain supaya bug DB kelihatan.
+  if (error) {
+    console.error("[auth/login] query error:", error.message);
+    throw new ApiError("DB_ERROR", "Gagal memvalidasi akun", {}, 500);
+  }
 
   if (!user || !user.password_hash || !verifyPassword(password, user.password_hash))
     throw new ApiError("INVALID_CREDENTIALS", "Email atau password salah", {}, 401);

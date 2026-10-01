@@ -38,23 +38,23 @@ export function WhiteboardGrid() {
   return (
     <div className="space-y-4">
       {/* Toolbar: tanggal + sortir */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">Tanggal:</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal:</label>
           <input
             type="date"
             max={todayISO()}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-500">Urutkan:</label>
+          <label className="text-sm text-gray-500 dark:text-gray-400">Urutkan:</label>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900"
           >
             <option value="code">Kode Barang</option>
             <option value="closing-desc">Stok Akhir ↓</option>
@@ -66,7 +66,7 @@ export function WhiteboardGrid() {
       </div>
 
       {!hasButcheryOnDate && (
-        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700">
+        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
           Belum ada catatan pemotongan untuk tanggal ini — stok masuk 0. Catat di{" "}
           <span className="font-medium">menu Pemotongan</span>.
         </p>
@@ -74,17 +74,17 @@ export function WhiteboardGrid() {
 
       {/* Ringkasan stok */}
       <div className="grid grid-cols-3 gap-3 text-center lg:max-w-md lg:ml-auto">
-        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-          <p className="text-xs text-green-600">Masuk</p>
-          <p className="font-bold text-green-800">{totalIncoming.toFixed(0)} kg</p>
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900 dark:bg-green-950">
+          <p className="text-xs text-green-600 dark:text-green-400">Masuk</p>
+          <p className="font-bold text-green-800 dark:text-green-300">{totalIncoming.toFixed(0)} kg</p>
         </div>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-          <p className="text-xs text-red-600">Keluar</p>
-          <p className="font-bold text-red-800">{totalOutgoing.toFixed(0)} kg</p>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
+          <p className="text-xs text-red-600 dark:text-red-400">Keluar</p>
+          <p className="font-bold text-red-800 dark:text-red-300">{totalOutgoing.toFixed(0)} kg</p>
         </div>
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <p className="text-xs text-blue-600">Stok Akhir</p>
-          <p className="font-bold text-blue-800">{totalClosing.toFixed(0)} kg</p>
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
+          <p className="text-xs text-blue-600 dark:text-blue-400">Stok Akhir</p>
+          <p className="font-bold text-blue-800 dark:text-blue-300">{totalClosing.toFixed(0)} kg</p>
         </div>
       </div>
 
@@ -98,80 +98,82 @@ export function WhiteboardGrid() {
             <div
               key={entry.productCode}
               className={cn(
-                "rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md",
-                out ? "border-gray-300 opacity-70" : "border-gray-200"
+                "rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-gray-900",
+                out
+                  ? "border-gray-300 opacity-70 dark:border-gray-700"
+                  : "border-gray-200 dark:border-gray-700"
               )}
             >
               {/* Header produk */}
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="inline-block rounded-md bg-gray-100 px-2 py-1 font-mono text-sm font-bold text-gray-700">
+                  <span className="inline-block rounded-md bg-gray-100 px-2 py-1 font-mono text-sm font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     {entry.productCode}
                   </span>
-                  <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                  <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {product?.name ?? entry.productCode}
                   </h3>
                 </div>
                 {out ? (
-                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:bg-red-950 dark:text-red-300">
                     Habis
                   </span>
                 ) : low ? (
-                  <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-medium text-yellow-700">
+                  <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300">
                     Menipis
                   </span>
                 ) : (
-                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-600">
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-600 dark:bg-green-950 dark:text-green-300">
                     Ready
                   </span>
                 )}
               </div>
 
               {/* Stok */}
-              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-center">
+              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-center dark:border-gray-800">
                 <div>
-                  <p className="text-[11px] text-gray-400">Awal</p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500">Awal</p>
                   <p className="text-sm font-semibold">
                     {entry.openingStock.toFixed(1)}
                   </p>
                 </div>
-                <div className="border-x border-gray-100">
-                  <p className="text-[11px] text-green-600">+ Masuk</p>
-                  <p className="text-sm font-semibold text-green-700">
+                <div className="border-x border-gray-100 dark:border-gray-800">
+                  <p className="text-[11px] text-green-600 dark:text-green-400">+ Masuk</p>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                     +{entry.incoming.toFixed(1)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-red-500">− Keluar</p>
-                  <p className="text-sm font-semibold text-red-600">
+                  <p className="text-[11px] text-red-500 dark:text-red-400">− Keluar</p>
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-300">
                     −{entry.outgoing.toFixed(1)}
                   </p>
                 </div>
               </div>
 
               {/* Closing stock + harga */}
-              <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+              <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800">
                 <div>
-                  <p className="text-[11px] text-gray-400">Stok Akhir</p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500">Stok Akhir</p>
                   <p
                     className={cn(
                       "text-lg font-bold",
                       out
-                        ? "text-red-600"
+                        ? "text-red-600 dark:text-red-400"
                         : low
-                        ? "text-yellow-600"
-                        : "text-gray-900"
+                        ? "text-yellow-600 dark:text-yellow-400"
+                        : "text-gray-900 dark:text-gray-100"
                     )}
                   >
                     {entry.closingStock.toFixed(1)}{" "}
-                    <span className="text-xs font-normal text-gray-400">
+                    <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
                       {product?.unit}
                     </span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[11px] text-gray-400">Harga</p>
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500">Harga</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                     {formatRp(entry.unitPrice)}
                     <span className="text-xs font-normal text-gray-400">
                       /{product?.unit}
@@ -184,7 +186,7 @@ export function WhiteboardGrid() {
         })}
       </div>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-400 dark:text-gray-500">
         Papan tulis digital — perhitungan stok {formatShortDate(date)}, update
         real-time saat ada penjualan.
       </p>

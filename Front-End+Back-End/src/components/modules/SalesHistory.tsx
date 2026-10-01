@@ -99,9 +99,9 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
       header: "Pemesan",
       render: (o: SalesOrder) => (
         <div>
-          <p className="font-medium text-gray-900">{o.customerName}</p>
+          <p className="font-medium text-gray-900 dark:text-gray-100">{o.customerName}</p>
           {o.customerPhone && (
-            <p className="text-xs text-gray-400">{o.customerPhone}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{o.customerPhone}</p>
           )}
         </div>
       ),
@@ -131,14 +131,14 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
               <PayStatusBadge status={o.payStatus} />
               <button
                 onClick={() => togglePay(o)}
-                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                 title={o.payStatus === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
               >
                 {o.payStatus === "lunas" ? "↺" : "✓"}
               </button>
             </div>
             {o.payStatus !== "lunas" && (
-              <span className="text-[11px] text-amber-600">
+              <span className="text-[11px] text-amber-600 dark:text-amber-400">
                 Sisa Rp {sisa.toLocaleString("id-ID")}
               </span>
             )}
@@ -154,7 +154,7 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
           <PickupStatusBadge status={o.pickupStatus} />
           <button
             onClick={() => togglePickup(o)}
-            className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             title={o.pickupStatus === "sudah_diambil" ? "Tandai belum diambil" : "Tandai sudah diambil"}
           >
             {o.pickupStatus === "sudah_diambil" ? "↺" : "✓"}
@@ -173,7 +173,7 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
               <button
                 key={s.value}
                 onClick={() => handleStatusClick(o, s.value as OrderStatus)}
-                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                 title={`Ubah ke ${s.label}`}
               >
                 {s.label === "Proses" ? "▶" : s.value}
@@ -196,12 +196,12 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
             placeholder="Cari pemesan / no. order…"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
           >
             <option value="">Semua status</option>
             {ORDER_STATUSES.map((s) => (
@@ -213,7 +213,7 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
           <select
             value={sortField}
             onChange={(e) => toggleSort(e.target.value as SortField)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
           >
             <option value="date">Tanggal</option>
             <option value="customerName">Pemesan</option>
@@ -221,7 +221,7 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
           </select>
           <button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
             title="Ubah arah sortir"
           >
             {sortDir === "asc" ? "↑" : "↓"}

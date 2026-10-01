@@ -116,24 +116,24 @@ export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
       {/* Overlay on screen — hidden saat print */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6 print:static print:bg-white print:p-0 print:block">
         {/* Popup body — hidden at print */}
-        <div className="print:hidden w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl">
-          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <div className="print:hidden w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900">
+          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
             <div>
               <h3 className="text-base font-semibold">Pratinjau & Cetak Invoice</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Layout 2 rangkap siap A4 (potong di garis putus-putus)
               </p>
             </div>
             <Button variant="ghost" onClick={onClose}>✕</Button>
           </div>
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto bg-gray-100 p-5 sm:max-h-[65vh]">
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto bg-gray-100 p-5 sm:max-h-[65vh] dark:bg-gray-950">
             {/* Screen preview: 2 rangkap stacked */}
             <div className="hidden md:block">
               <InvoiceSheet order={order} variant="admin" />
-              <div className="my-3 flex items-center gap-3 text-xs text-gray-500">
-                <span className="h-px flex-1 bg-gray-300" />
+              <div className="my-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                <span className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
                 ✂ Potong disini ✂
-                <span className="h-px flex-1 bg-gray-300" />
+                <span className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
               </div>
               <InvoiceSheet order={order} variant="customer" />
             </div>
@@ -141,7 +141,7 @@ export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
               <InvoiceSheet order={order} variant="admin" />
             </div>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4">
+          <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
             <Button variant="ghost" onClick={onClose}>Tutup</Button>
             <Button onClick={handlePrint} icon={<span>🖨</span>}>
               Cetak Invoice

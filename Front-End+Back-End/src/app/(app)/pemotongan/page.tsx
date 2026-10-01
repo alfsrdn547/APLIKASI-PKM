@@ -6,7 +6,7 @@ export default function PemotonganPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Pemotongan Manual</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Modul 2 — Potong ayam jadi potongan timbang; hasilnya jadi sumber stok Papan Tulis
         </p>
       </div>

@@ -5,7 +5,7 @@ export default function PengeluaranPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Transaksi & Pengeluaran Operasional</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Modul 3 — Catat beban produksi harian (es batu, angkut, pakan, alat)
         </p>
       </div>

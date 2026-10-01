@@ -51,7 +51,7 @@ export function IncomingTable() {
       key: "nopol",
       header: "Nopol",
       render: (r: (typeof filtered)[0]) => (
-        <span className="text-sm text-gray-500">{r.nopol || "-"}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{r.nopol || "-"}</span>
       ),
     },
     {
@@ -74,7 +74,7 @@ export function IncomingTable() {
       key: "notes",
       header: "Catatan",
       render: (r: (typeof filtered)[0]) => (
-        <span className="text-gray-500">{r.notes || "-"}</span>
+        <span className="text-gray-500 dark:text-gray-400">{r.notes || "-"}</span>
       ),
     },
   ];
@@ -88,7 +88,7 @@ export function IncomingTable() {
           <label className="sr-only" htmlFor="filter-date">Filter tanggal</label>
           <select
             id="filter-date"
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           >

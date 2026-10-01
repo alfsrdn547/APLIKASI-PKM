@@ -44,7 +44,7 @@ export function ButcheryHistory() {
       key: "batch",
       header: "Batch",
       render: (r: (typeof filtered)[0]) => (
-        <span className="text-sm text-gray-500">{batchLabel(r.incomingId)}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{batchLabel(r.incomingId)}</span>
       ),
     },
     {
@@ -69,7 +69,7 @@ export function ButcheryHistory() {
         const shown = r.parts.slice(0, 3);
         const more = r.parts.length - shown.length;
         return (
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {shown.map((p) => `${p.productCode}×${p.qtyKg}`).join(", ")}
             {more > 0 ? ` +${more}` : ""}
           </span>
@@ -87,7 +87,7 @@ export function ButcheryHistory() {
       render: (r: (typeof filtered)[0]) => (
         <button
           onClick={() => handleRemove(r.id)}
-          className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-500"
+          className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-500 dark:text-gray-600 dark:hover:bg-red-950 dark:hover:text-red-400"
           aria-label="Hapus"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -107,7 +107,7 @@ export function ButcheryHistory() {
           <label className="sr-only" htmlFor="butchery-filter">Filter tanggal</label>
           <select
             id="butchery-filter"
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           >

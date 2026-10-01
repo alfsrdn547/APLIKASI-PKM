@@ -14,9 +14,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm",
-  ghost: "text-gray-600 hover:bg-gray-100 active:bg-gray-200",
-  outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100",
+  // primary: biru solid ->Abu gelap di dark mode (biru solid menyilaukan).
+  primary:
+    "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm dark:bg-blue-500 dark:hover:bg-blue-400 dark:active:bg-blue-600",
+  ghost:
+    "text-gray-600 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 dark:active:bg-gray-700",
+  outline:
+    "border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700",
 };
 
 const SIZES: Record<Size, string> = {

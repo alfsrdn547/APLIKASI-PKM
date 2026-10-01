@@ -169,14 +169,14 @@ export function SalesForm() {
         )}
 
         {errors.submit && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
             {errors.submit}
           </p>
         )}
 
         {/* Item list */}
         <div className="space-y-3">
-          <div className="grid grid-cols-12 gap-3 rounded-lg bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="grid grid-cols-12 gap-3 rounded-lg bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <div className="col-span-4">Kode Barang</div>
             <div className="col-span-2">Qty</div>
             <div className="col-span-3">Harga / unit</div>
@@ -191,7 +191,7 @@ export function SalesForm() {
             return (
               <div
                 key={it.key}
-                className="grid grid-cols-12 items-start gap-3 rounded-lg border border-gray-200 p-3"
+                className="grid grid-cols-12 items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
               >
                 <div className="col-span-4">
                   <Select
@@ -228,7 +228,7 @@ export function SalesForm() {
                   <button
                     type="button"
                     onClick={() => removeItem(it.key)}
-                    className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                    className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-500 dark:hover:bg-red-950 dark:hover:text-red-400"
                     aria-label="Hapus item"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -241,7 +241,7 @@ export function SalesForm() {
           })}
 
           {cart.length === 0 && (
-            <p className="rounded-lg border border-dashed border-gray-300 py-8 text-center text-sm text-gray-400">
+            <p className="rounded-lg border border-dashed border-gray-300 py-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:text-gray-500">
               Belum ada item — klik "Tambah Item"
             </p>
           )}
@@ -252,8 +252,8 @@ export function SalesForm() {
             + Tambah Item
           </Button>
           <div className="text-sm">
-            <span className="text-gray-500">Subtotal: </span>
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">Subtotal: </span>
+            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {formatRp(subtotal)}
             </span>
           </div>
@@ -267,7 +267,7 @@ export function SalesForm() {
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+        <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
           <Button type="submit" loading={submitLoading}>
             Simpan Transaksi
           </Button>

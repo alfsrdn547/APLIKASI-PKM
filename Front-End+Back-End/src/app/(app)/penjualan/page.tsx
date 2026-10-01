@@ -19,14 +19,14 @@ export default function PenjualanPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Penjualan & Pemesanan</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Modul 3 — Transaksi penjualan, filter/sort riwayat & cetak invoice 2 rangkap
         </p>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-gray-500">
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
         <span>Tip:</span>
-        <span className="rounded bg-gray-100 px-2 py-1">
+        <span className="rounded bg-gray-100 px-2 py-1 dark:bg-gray-800">
           Klik baris status Selesai/Proses di riwayat untuk cetak invoice
         </span>
       </div>

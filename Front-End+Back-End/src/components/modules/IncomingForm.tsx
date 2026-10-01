@@ -206,26 +206,26 @@ export function IncomingForm() {
         />
 
         {/* Pratinjau kalkulasi stok */}
-        <div className="sm:col-span-2 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
-          <p className="mb-2 text-sm font-medium text-blue-800">
+        <div className="sm:col-span-2 rounded-lg border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+          <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
             Kalkulasi Stok Siap Produksi (real-time)
           </p>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-xs text-blue-600">Ayam Masuk</p>
-              <p className="text-lg font-bold text-blue-900">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Masuk</p>
+              <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
                 {Number.isFinite(inNum) ? inNum.toLocaleString("id-ID") : 0} ekor
               </p>
             </div>
-            <div className="border-x border-blue-200">
-              <p className="text-xs text-blue-600">Ayam Mati</p>
-              <p className="text-lg font-bold text-red-600">
+            <div className="border-x border-blue-200 dark:border-blue-900">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Mati</p>
+              <p className="text-lg font-bold text-red-600 dark:text-red-400">
                 −{Number.isFinite(deadNum) ? deadNum.toLocaleString("id-ID") : 0} ekor
               </p>
             </div>
             <div>
-              <p className="text-xs text-blue-600">Net Stok Siap</p>
-              <p className="text-lg font-bold text-green-600">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Net Stok Siap</p>
+              <p className="text-lg font-bold text-green-600 dark:text-green-400">
                 {Number.isFinite(inNum - deadNum)
                   ? (inNum - deadNum).toLocaleString("id-ID")
                   : 0}{" "}
@@ -233,7 +233,7 @@ export function IncomingForm() {
               </p>
             </div>
           </div>
-          <p className="mt-2 text-xs text-blue-700/70">
+          <p className="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70">
             Formula: Produksi Bersih = Ayam Masuk − Ayam Mati (afkir total)
           </p>
         </div>

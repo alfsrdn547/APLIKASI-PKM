@@ -38,10 +38,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Masuk RPH</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            Masuk RPH
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gunakan email yang diberikan pemilik
           </p>
         </div>
@@ -64,13 +66,15 @@ export default function LoginPage() {
             required
           />
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+              {error}
+            </p>
           )}
           <Button type="submit" loading={loading} className="w-full">
             Masuk
           </Button>
         </form>
-        <p className="mt-4 text-center text-xs text-gray-500">
+        <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
           Belum punya akun? Hubungi pemilik untuk dibuatkan.
         </p>
       </div>

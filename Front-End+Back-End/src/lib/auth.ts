@@ -89,11 +89,14 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
   const payload = verifyToken(token);
   if (!payload?.sub) return null;
   try {
+    // `.maybeSingle()` bukan `.single()`: 0 baris (user dihapus) → null,
+    // bukan error. Kolom `phone` DIHAPUS — gak ada di tabel `users`;
+    // select kolom yang gak ada bikin query error → sesi dianggap null.
     const { data } = await getAdminClient()
       .from("users")
-      .select("id,email,full_name,role,active,phone")
+      .select("id,email,full_name,role,active")
       .eq("id", payload.sub)
-      .single();
+      .maybeSingle();
     if (!data || !data.active) return null;
     return {
       id: data.id,

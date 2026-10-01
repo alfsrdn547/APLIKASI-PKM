@@ -29,7 +29,7 @@ function MiniBarChart({
               title={`${labels[i]} — ${formatRp(v)}`}
             />
           </div>
-          <p className="mt-1 truncate text-center text-[10px] text-gray-400">
+          <p className="mt-1 truncate text-center text-[10px] text-gray-400 dark:text-gray-500">
             {labels[i]}
           </p>
         </div>
@@ -97,7 +97,7 @@ export function DashboardContent() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Dashboard Rekapitulasi</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Ringkasan harian penerimaan, penjualan & pengeluaran RPH (Modul 4)
           </p>
         </div>

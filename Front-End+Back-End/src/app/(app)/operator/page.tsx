@@ -109,7 +109,9 @@ export default function OperatorsPage() {
       key: "nama",
       header: "Nama",
       render: (u: UserRow) => (
-        <span className="font-medium text-gray-900">{u.full_name || "—"}</span>
+        <span className="font-medium text-gray-900 dark:text-gray-100">
+            {u.full_name || "—"}
+          </span>
       ),
     },
     { key: "email", header: "Email", render: (u: UserRow) => u.email },
@@ -117,7 +119,7 @@ export default function OperatorsPage() {
       key: "role",
       header: "Peran",
       render: (u: UserRow) => (
-        <span className={`text-xs font-semibold uppercase ${u.role === "pemilik" ? "text-amber-600" : "text-blue-600"}`}>
+        <span className={`text-xs font-semibold uppercase ${u.role === "pemilik" ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>
           {u.role}
         </span>
       ),
@@ -126,7 +128,7 @@ export default function OperatorsPage() {
       key: "status",
       header: "Status",
       render: (u: UserRow) => (
-        <span className={`text-xs font-medium ${u.active ? "text-green-600" : "text-red-500"}`}>
+        <span className={`text-xs font-medium ${u.active ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
           {u.active ? "Aktif" : "Nonaktif"}
         </span>
       ),
@@ -175,7 +177,7 @@ export default function OperatorsPage() {
             </Button>
           </div>
         ) : (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
         ),
     },
   ];
@@ -184,16 +186,20 @@ export default function OperatorsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Kelola Akun</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Buat akun operator, atur status, atau reset password
         </p>
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </p>
       )}
       {msg && (
-        <p className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">{msg}</p>
+        <p className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+          {msg}
+        </p>
       )}
 
       <Card title="Buat Akun Operator" subtitle="Sampaikan password secara pribadi ke yang bersangkutan">

@@ -115,7 +115,7 @@ export function ExpensesModule() {
       key: "sourceFund",
       header: "Sumber",
       render: (r: (typeof filtered)[0]) => (
-        <span className="text-sm text-gray-500 capitalize">{r.sourceFund}</span>
+        <span className="text-sm text-gray-500 capitalize dark:text-gray-400">{r.sourceFund}</span>
       ),
     },
     {
@@ -134,7 +134,7 @@ export function ExpensesModule() {
       render: (r: (typeof filtered)[0]) => (
         <button
           onClick={() => handleRemove(r.id)}
-          className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-500"
+          className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-500 dark:text-gray-600 dark:hover:bg-red-950 dark:hover:text-red-400"
           aria-label="Hapus"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -153,7 +153,7 @@ export function ExpensesModule() {
         subtitle="Pencatatan beban produksi harian (Modul 3)"
       >
         {errors.submit && (
-          <p className="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+          <p className="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
             {errors.submit}
           </p>
         )}
@@ -168,11 +168,11 @@ export function ExpensesModule() {
               error={errors.date}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Arah Arus
               </label>
               <select
-                className="w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                 value={form.direction}
                 onChange={(e) => setForm((f) => ({ ...f, direction: e.target.value as ExpenseDirection }))}
               >
@@ -182,11 +182,11 @@ export function ExpensesModule() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Sumber Uang
               </label>
               <select
-                className="w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                 value={form.sourceFund}
                 onChange={(e) => setForm((f) => ({ ...f, sourceFund: e.target.value as ExpenseSourceFund }))}
               >
@@ -196,11 +196,11 @@ export function ExpensesModule() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Kategori
               </label>
               <select
-                className="w-full rounded-lg border px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                 value={form.category}
                 onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}
               >
@@ -244,7 +244,7 @@ export function ExpensesModule() {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
           >
             <option value="">Semua bulan</option>
             {months.map((m) => (

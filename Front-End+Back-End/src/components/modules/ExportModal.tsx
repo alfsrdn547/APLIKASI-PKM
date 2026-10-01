@@ -97,17 +97,17 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-      <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+      <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900">
+        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
           <div>
             <h3 className="text-base font-semibold">Ekspor Laporan</h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Rekapitulasi harian ke file eksternal
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             aria-label="Tutup"
           >
             ✕
@@ -117,7 +117,7 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
         <div className="space-y-5 p-5">
           {/* Rentang */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Rentang Tanggal
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -127,8 +127,8 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
                   onClick={() => setRange(r)}
                   className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                     range === r
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
                   }`}
                 >
                   {r === "7d" ? "7 hari" : r === "14d" ? "14 hari" : "30 hari"}
@@ -139,7 +139,7 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
 
           {/* Format */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Format Ekspor
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -149,8 +149,8 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
                   onClick={() => setFormat(f)}
                   className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                     format === f
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
                   }`}
                 >
                   {f === "csv" ? "📄 CSV" : f === "json" ? "📦 JSON" : "🖨 Print"}
@@ -160,19 +160,19 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
           </div>
 
           {/* Ringkasan */}
-          <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm">
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-800">
             <div className="flex justify-between">
-              <span className="text-gray-500">Jumlah baris</span>
+              <span className="text-gray-500 dark:text-gray-400">Jumlah baris</span>
               <span className="font-medium">{rows.length} hari</span>
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-gray-500">Total omset</span>
+              <span className="text-gray-500 dark:text-gray-400">Total omset</span>
               <span className="font-medium">
                 Rp {rows.reduce((a, r) => a + r.omset, 0).toLocaleString("id-ID")}
               </span>
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-gray-500">Total pengeluaran</span>
+              <span className="text-gray-500 dark:text-gray-400">Total pengeluaran</span>
               <span className="font-medium">
                 Rp {rows.reduce((a, r) => a + r.pengeluaran, 0).toLocaleString("id-ID")}
               </span>
@@ -219,7 +219,7 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-gray-200 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-gray-800">
           <Button variant="ghost" onClick={onClose}>Batal</Button>
           <Button onClick={handleExport}>
             {format === "print" ? "Cetak" : "Download"}

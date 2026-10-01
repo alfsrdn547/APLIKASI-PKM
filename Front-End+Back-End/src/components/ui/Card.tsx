@@ -15,18 +15,22 @@ export function Card({ children, className, title, subtitle, action }: CardProps
   return (
     <div
       className={cn(
-        "rounded-xl border border-gray-200 bg-white shadow-sm",
+        "rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900",
         className
       )}
     >
       {(title || action) && (
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
           <div>
             {title && (
-              <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {title}
+              </h3>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>
+              <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                {subtitle}
+              </p>
             )}
           </div>
           {action}

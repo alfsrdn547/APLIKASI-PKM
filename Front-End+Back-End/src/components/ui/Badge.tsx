@@ -9,9 +9,9 @@ interface BadgeProps {
 }
 
 const VARIANTS: Record<BadgeVariant, string> = {
-  default: "bg-gray-100 text-gray-700",
-  success: "bg-green-100 text-green-700",
-  danger: "bg-red-100 text-red-700",
+  default: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  success: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  danger: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 };
 
 export function Badge({ children, variant = "default", className }: BadgeProps) {
