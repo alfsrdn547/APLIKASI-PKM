@@ -106,6 +106,14 @@ export function IncomingForm() {
   const inNum = parseFloat(form.chickenIn) || 0;
   const deadNum = parseFloat(form.chickenDead) || 0;
   const brokenNum = parseFloat(form.chickenBroken) || 0;
+  const tonaseNum = parseFloat(form.tonase) || 0;
+
+  // Berat rata-rata per ekor — turunan, bukan kolom DB (revert cukup hapus).
+  // Rata-rata broiler hidup ±2.4–3.2 kg; di luar itu indikasi umur/pakan.
+  const rataRata = inNum > 0 && tonaseNum > 0 ? tonaseNum / inNum : 0;
+  const warnaBerat = rataRata < 2.4 || rataRata > 3.2
+    ? "font-medium text-amber-600 dark:text-amber-400"
+    : "text-green-600 dark:text-green-400";
 
   return (
     <Card
@@ -236,6 +244,18 @@ export function IncomingForm() {
           <p className="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70">
             Formula: Produksi Bersih = Ayam Masuk − Ayam Mati (afkir total)
           </p>
+          {rataRata > 0 && (
+            <p className="mt-1 text-xs text-blue-700/70 dark:text-blue-300/70">
+              Berat rata-rata: <strong>{rataRata.toFixed(2)} kg/ekor</strong>{" "}
+              <span className={warnaBerat}>
+                {rataRata < 2.4
+                  ? "— di bawah normal"
+                  : rataRata > 3.2
+                    ? "— di atas normal"
+                    : "— wajar untuk broiler"}
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="sm:col-span-2 flex justify-end gap-2">

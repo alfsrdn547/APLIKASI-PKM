@@ -6,7 +6,6 @@ import { requireAuth } from "@/lib/auth";
 import { KG_CODES } from "@/constants/products";
 
 export const dynamic = "force-dynamic";
-type Ctx = { params: { id: string } };
 
 // GET /api/butchery
 export const GET = route(async (req) => {
@@ -50,14 +49,4 @@ export const POST = route(async (req) => {
   return ok(data, 201);
 });
 
-// DELETE /api/butchery/[id]
-export const DELETE = route(async (req, ctx: Ctx) => {
-  await requireAuth(req, "write");
-  const id = ctx.params.id;
-  const { data: old } = await getAdminClient().from("butchery").select("*").eq("id", id).single();
-  if (!old) throw new ApiError("NOT_FOUND", "Pemotongan tidak ditemukan", {}, 404);
-  const { error } = await getAdminClient().from("butchery").delete().eq("id", id);
-  if (error) throw new ApiError("DB_ERROR", error.message, {}, 500);
-  await writeAudit("DELETE", `/api/butchery/${id}`, "butchery", id, "delete", old, null, 204, req);
-  return ok(null, 204);
-});
+// DELETE /api/butchery/[id] → ditangani di ./[id]/route.ts
