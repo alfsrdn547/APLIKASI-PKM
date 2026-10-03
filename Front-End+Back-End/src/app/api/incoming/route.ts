@@ -32,11 +32,15 @@ export const POST = route(async (req) => {
   if (!(chickenIn > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenIn: "Harus > 0" }, 400);
   if (chickenDead > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenDead: "Mati melebihi masuk" }, 400);
   if (chickenBroken > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenBroken: "Cacat melebihi masuk" }, 400);
+  // Tonase & harga per kg wajib — total_harga = tonase × harga_per_kg.
+  // Konsisten dengan label "Harga per Kg" (satuan kg, bukan ekor).
+  if (!(tonase > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { tonase: "Tonase wajib diisi" }, 400);
+  if (!(hargaPerKg > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { hargaPerKg: "Harga per kg wajib diisi" }, 400);
 
   const { data, error } = await getAdminClient().from("incoming").insert({
     date, chicken_in: chickenIn, chicken_dead: chickenDead, chicken_broken: chickenBroken,
     nopol, tonase_kg: tonase, harga_per_kg: hargaPerKg,
-    total_harga: Math.round(chickenIn * hargaPerKg * 100) / 100,
+    total_harga: Math.round(tonase * hargaPerKg * 100) / 100,
     kasbon, notes,
   }).select().single();
   if (error) throw new ApiError("DB_ERROR", error.message, {}, 500);

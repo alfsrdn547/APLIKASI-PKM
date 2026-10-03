@@ -34,11 +34,12 @@ export const KG_CODES: readonly string[] = PRODUCTS
 
 // ─── Kategori Pengeluaran ────────────────────────────────────────────
 export const EXPENSE_CATEGORIES = [
-  { value: "es_batu",         label: "Es Batu" },
-  { value: "biaya_angkut",    label: "Biaya Angkut" },
-  { value: "pakan",           label: "Pakan (Temporary)" },
-  { value: "operasional_alat", label: "Operasional Alat" },
-  { value: "lainnya",         label: "Lainnya" },
+  { value: "es_batu",  label: "Es Batu" },
+  { value: "borongan", label: "Borongan" },
+  { value: "harian",   label: "Harian" },
+  { value: "admin",    label: "Admin" },
+  { value: "konsumsi", label: "Konsumsi" },
+  { value: "supir",    label: "Supir" },
 ] as const;
 
 // ─── Arah arus & sumber uang pengeluaran (PRD Modul 4) ───────────────

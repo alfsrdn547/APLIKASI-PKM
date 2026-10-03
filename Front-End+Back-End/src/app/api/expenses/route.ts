@@ -1,6 +1,6 @@
 import { getAdminClient } from "@/lib/supabase-server";
 import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
-import { assertNotFuture, isOneOf, EXPENSE_CATEGORIES, EXPENSE_DIRECTIONS, EXPENSE_SOURCES } from "@/lib/validator";
+import { assertNotFuture, isOneOf, EXPENSE_CATEGORIES, EXPENSE_DIRECTIONS } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
 
@@ -24,13 +24,14 @@ export const POST = route(async (req) => {
   await requireAuth(req, "write");
   const b = await readJson<any>(req);
   const date = b?.date, category = b?.category, description = b?.description ?? "",
-    direction = b?.direction ?? "keluar", sourceFund = b?.sourceFund ?? "kas",
+    direction = b?.direction ?? "keluar", sourceFund = String(b?.sourceFund ?? "").trim(),
     amount = Number(b?.amount);
 
   assertNotFuture(date);
   if (!isOneOf(EXPENSE_CATEGORIES, category)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { category: "Kategori tidak valid" }, 400);
   if (!isOneOf(EXPENSE_DIRECTIONS, direction)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { direction: "Arah tidak valid" }, 400);
-  if (!isOneOf(EXPENSE_SOURCES, sourceFund)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { sourceFund: "Sumber tidak valid" }, 400);
+  // Sumber uang = teks bebas (bukan enum), asal tidak kosong.
+  if (!sourceFund) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { sourceFund: "Wajib diisi" }, 400);
   if (!description.trim()) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { description: "Wajib diisi" }, 400);
   if (!(amount > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { amount: "Nominal harus > 0" }, 400);
 

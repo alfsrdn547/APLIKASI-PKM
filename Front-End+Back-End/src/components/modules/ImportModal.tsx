@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { useRPHStore } from "@/stores/useRPHStore";
+import type { ExpenseCategory } from "@/types";
 import {
   type ImportModule,
   type IncomingRow,
@@ -86,7 +87,7 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
               tonase: r.tonase,
               hargaPerKg: r.hargaPerKg,
               kasbon: r.kasbon,
-              totalHarga: r.chickenIn * r.hargaPerKg,
+              totalHarga: r.tonase * r.hargaPerKg,
               notes: r.notes,
             });
             ok++;
@@ -150,9 +151,9 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
           try {
             await addExpense({
               date: r.date,
-              category: r.category as "es_batu" | "biaya_angkut" | "pakan" | "operasional_alat" | "lainnya",
-              direction: r.direction as "keluar" | "masuk",
-              sourceFund: r.sourceFund as "kas" | "bank" | "lainnya",
+              category: r.category as ExpenseCategory,
+              direction: "keluar",
+              sourceFund: String(r.sourceFund ?? "Kas"),
               description: r.description,
               amount: r.amount,
             });

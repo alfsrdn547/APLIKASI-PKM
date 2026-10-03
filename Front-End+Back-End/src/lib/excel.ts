@@ -39,7 +39,7 @@ export interface ExpenseRow {
   date: string;
   category: string;
   direction: string;
-  sourceFund: string;
+  sourceFund: string;   // teks bebas, bukan enum
   description: string;
   amount: number;
 }
@@ -77,7 +77,6 @@ const SALES_HEADERS = [
 const EXPENSE_HEADERS = [
   { id: "tanggal", field: "date" as const },
   { id: "kategori", field: "category" as const },
-  { id: "arah", field: "direction" as const },
   { id: "sumber", field: "sourceFund" as const },
   { id: "deskripsi", field: "description" as const },
   { id: "nominal", field: "amount" as const },
@@ -372,9 +371,9 @@ export function parseXlsx(file: File, module: ImportModule): Promise<ParsedRow[]
           case "pengeluaran":
             resolve(mapped.map((r) => ({
               date: excelDateToISO(r.date),
-              category: String(r.category ?? "lainnya"),
-              direction: String(r.direction ?? "keluar"),
-              sourceFund: String(r.sourceFund ?? "kas"),
+              category: String(r.category ?? "harian"),
+              direction: "keluar",
+              sourceFund: String(r.sourceFund ?? "Kas"),
               description: String(r.description ?? ""),
               amount: toNum(r.amount),
             })) as ExpenseRow[]);

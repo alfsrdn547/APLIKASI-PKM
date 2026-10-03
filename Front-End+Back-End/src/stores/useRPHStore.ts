@@ -8,7 +8,6 @@ import type {
   OrderStatus,
   ExpenseCategory,
   ExpenseDirection,
-  ExpenseSourceFund,
   ButcheryRecord,
   PayStatus,
   PickupStatus,
@@ -93,7 +92,7 @@ interface ExpenseRow {
 const mapExpense = (r: ExpenseRow): ExpenseRecord => ({
   id: r.id, date: r.date.slice(0, 10), category: r.category as ExpenseCategory,
   direction: (r.direction as ExpenseDirection) || "keluar",
-  sourceFund: (r.source_fund as ExpenseSourceFund) || "kas",
+  sourceFund: r.source_fund ?? "Kas",   // teks bebas, bukan enum
   description: r.description, amount: r.amount, createdAt: r.created_at,
 });
 const toExpenseRow = (r: Omit<ExpenseRecord, "id" | "createdAt">) => ({

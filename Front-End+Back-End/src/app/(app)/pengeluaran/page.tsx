@@ -6,7 +6,7 @@ export default function PengeluaranPage() {
       <div>
         <h2 className="text-xl font-bold">Transaksi & Pengeluaran Operasional</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Modul 3 — Catat beban produksi harian (es batu, angkut, pakan, alat)
+          Modul 3 — Catat beban produksi harian (es batu, borongan, harian, admin, konsumsi, supir)
         </p>
       </div>
       <ExpensesModule />

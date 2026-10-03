@@ -19,9 +19,9 @@ export interface IncomingRecord {
   chickenDead: number;    // ekor mati / afkir
   chickenBroken: number;  // ekor afkir ringan (dipisah untuk tracing)
   nopol: string;          // no. polisi kendaraan
-  tonase: number;         // berat masuk (kg)
-  hargaPerKg: number;     // harga per kg
-  totalHarga: number;     // total (auto: ekor × harga)
+  tonase: number;         // berat masuk (kg) — wajib
+  hargaPerKg: number;     // harga per kg — wajib
+  totalHarga: number;     // total (auto: tonase × hargaPerKg)
   kasbon: number;         // kasbon (opsional)
   notes: string;
   createdAt: string;
@@ -74,20 +74,20 @@ export interface SalesOrder {
 // ─── Modul 3: Transaksi Pengeluaran ──────────────────────────────────
 export type ExpenseCategory =
   | "es_batu"
-  | "biaya_angkut"
-  | "pakan"
-  | "operasional_alat"
-  | "lainnya";
+  | "borongan"
+  | "harian"
+  | "admin"
+  | "konsumsi"
+  | "supir";
 
 export type ExpenseDirection = "keluar" | "masuk";
-export type ExpenseSourceFund = "kas" | "bank" | "lainnya";
 
 export interface ExpenseRecord {
   id: string;
   date: string;
   category: ExpenseCategory;
-  direction: ExpenseDirection;      // arus uang: keluar / masuk
-  sourceFund: ExpenseSourceFund;    // sumber uang
+  direction: ExpenseDirection;      // arah uang: keluar / masuk (selalu "keluar" di UI)
+  sourceFund: string;               // sumber uang — teks bebas, bukan enum
   description: string;
   amount: number;         // Rp
   createdAt: string;

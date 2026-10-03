@@ -75,6 +75,18 @@ export function IncomingForm() {
     if (isPositive(inNum) && deadNum > inNum)
       errs.chickenDead = `Ayam mati (${deadNum}) melebihi ayam masuk (${inNum})`;
 
+    const tonaseNum = parseFloat(form.tonase);
+    if (!form.tonase || isNaN(tonaseNum))
+      errs.tonase = "Tonase wajib diisi";
+    else if (!isPositive(tonaseNum))
+      errs.tonase = "Tonase harus lebih dari 0";
+
+    const hargaNum = parseFloat(form.hargaPerKg);
+    if (!form.hargaPerKg || isNaN(hargaNum))
+      errs.hargaPerKg = "Harga per kg wajib diisi";
+    else if (!isPositive(hargaNum))
+      errs.hargaPerKg = "Harga harus lebih dari 0";
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -90,9 +102,9 @@ export function IncomingForm() {
         chickenDead: parseFloat(form.chickenDead || "0"),
         chickenBroken: parseFloat(form.chickenBroken || "0"),
         nopol: form.nopol.trim(),
-        tonase: parseFloat(form.tonase || "0"),
-        hargaPerKg: parseFloat(form.hargaPerKg || "0"),
-        totalHarga: parseFloat(form.chickenIn || "0") * parseFloat(form.hargaPerKg || "0"),
+        tonase: parseFloat(form.tonase),
+        hargaPerKg: parseFloat(form.hargaPerKg),
+        totalHarga: tonaseNum * hargaNum,
         kasbon: parseFloat(form.kasbon || "0"),
         notes: form.notes.trim(),
       });
@@ -107,6 +119,8 @@ export function IncomingForm() {
   const deadNum = parseFloat(form.chickenDead) || 0;
   const brokenNum = parseFloat(form.chickenBroken) || 0;
   const tonaseNum = parseFloat(form.tonase) || 0;
+  const hargaNum = parseFloat(form.hargaPerKg) || 0;
+  const totalHarga = tonaseNum * hargaNum;
 
   // Berat rata-rata per ekor — turunan, bukan kolom DB (revert cukup hapus).
   // Rata-rata broiler hidup ±2.4–3.2 kg; di luar itu indikasi umur/pakan.
@@ -178,20 +192,22 @@ export function IncomingForm() {
           type="number"
           min={0}
           step="any"
-          label="Tonase / Berat (kg, opsional)"
-          placeholder="Contoh: 900"
+          label="Tonase (kg)"
+          placeholder="Contoh: 1000"
           value={form.tonase}
           onChange={(e) => set("tonase", e.target.value)}
+          error={errors.tonase}
         />
 
         <Input
           type="number"
           min={0}
           step="any"
-          label="Harga per Kg (opsional)"
-          placeholder="Contoh: 38000"
+          label="Harga per Kg"
+          placeholder="Contoh: 25000"
           value={form.hargaPerKg}
           onChange={(e) => set("hargaPerKg", e.target.value)}
+          error={errors.hargaPerKg}
         />
 
         <Input
@@ -218,7 +234,7 @@ export function IncomingForm() {
           <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
             Kalkulasi Stok Siap Produksi (real-time)
           </p>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
             <div>
               <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Masuk</p>
               <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
@@ -240,9 +256,15 @@ export function IncomingForm() {
                 ekor
               </p>
             </div>
+            <div className="border-l border-blue-200 dark:border-blue-900">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Total Harga</p>
+              <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
+                {totalHarga > 0 ? `Rp ${totalHarga.toLocaleString("id-ID")}` : "—"}
+              </p>
+            </div>
           </div>
           <p className="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70">
-            Formula: Produksi Bersih = Ayam Masuk − Ayam Mati (afkir total)
+            Formula: Produksi Bersih = Ayam Masuk − Ayam Mati (afkir total) · Total Harga = Tonase × Harga per Kg
           </p>
           {rataRata > 0 && (
             <p className="mt-1 text-xs text-blue-700/70 dark:text-blue-300/70">
