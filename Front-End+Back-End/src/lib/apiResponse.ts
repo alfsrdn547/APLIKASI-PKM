@@ -39,6 +39,21 @@ export async function readJson<T = any>(req: Request): Promise<T> {
   }
 }
 
+/** Baca field dari body dengan menerima camelCase ATAU snake_case.
+ *  App kirim camelCase (`customerName`), tapi curl/DevTools/Postman
+ *  mengirim snake_case (`customer_name`) — sama kayak nama kolom DB.
+ *  Tanpa ini, field yang missed jadi `undefined` → `Number(undefined)` = NaN
+ *  → validation error yang jauh dari penyebab sebenarnya. */
+export function field(b: any, camel: string, snake?: string): any {
+  return b?.[camel] ?? b?.[snake ?? camel];
+}
+
+/** Versi angka: NaN kalau absen atau bukan angka (bukan diam-diam 0). */
+export function num(b: any, camel: string, snake?: string, fallback = 0): number {
+  const raw = field(b, camel, snake);
+  return raw === undefined || raw === null || raw === "" ? fallback : Number(raw);
+}
+
 /** Wrap handler — catch ApiError & unexpected. */
 export function route(handler: (req: Request, ctx: any) => Promise<Response>) {
   return async (req: Request, ctx: any): Promise<Response> => {

@@ -1,0 +1,694 @@
+<title>Palet Olive RPH</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   Preview palet baru — override token blue & gray di tailwind.config.ts
+   Light-committed: mode gelap di app belum diubah (masih biru).
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Aksen — #8B9A6E olive */
+  --olive-50:  #F4F6F1;
+  --olive-100: #E8EBE2;
+  --olive-200: #D3D8C6;
+  --olive-300: #B4BC9E;
+  --olive-400: #98A37C;
+  --olive-500: #8B9A6E;
+  --olive-600: #75835C;
+  --olive-700: #5F6B4A;
+  --olive-800: #4C553B;
+  --olive-900: #3D442F;
+
+  /* Netral — #F7F2EB / #EAE2D6 / #EEEEEE */
+  --cream-50:  #F7F2EB;
+  --cream-100: #F2EDE4;
+  --cream-200: #EAE2D6;
+  --cream-300: #DED5C7;
+  --cream-400: #C9BFAF;
+  --cream-500: #A8A092;
+  --cream-600: #857E72;
+  --cream-700: #665F56;
+  --cream-800: #4A453E;
+  --cream-900: #2F2C28;
+
+  /* Status — dipertahankan, bukan informasi dekoratif */
+  --ok-fg: #15803D;  --ok-bg: #DCFCE7;
+  --warn-fg: #B45309; --warn-bg: #FEF3C7;
+  --bad-fg: #B91C1C;  --bad-bg: #FEE2E2;
+
+  --bg: var(--cream-50);
+  --surface: #FFFFFF;
+  --border: var(--cream-200);
+  --border-strong: var(--cream-300);
+  --fg: var(--cream-900);
+  --fg-muted: var(--cream-600);
+  --fg-faint: var(--cream-500);
+  --accent: var(--olive-600);
+  --accent-soft: var(--olive-100);
+
+  color-scheme: light;
+}
+
+/* ── Dark: eye-friendly untuk pemakaian malam ─────────────────────
+   3 hal yang bikin mata sakit di malam hari, semuanya dihindari:
+   1. Background hitam PEKAT → pakai coklat sangat gelap, bukan #000.
+      Hitam pekat bikin halo saat mata adaptsi ke layar terang.
+   2. Teks putih MURNI → pakai krem hangat, bukan #FFF.
+   3. Cahaya biru → seluruh palet condong ke coklat hangat, nol biru.
+   Plus: kontras diturunkan, bukan黑白 mencolok seperti dark mode biasa. */
+:root[data-theme="dark"] {
+  --bg: #1A1814;            /* coklat sangat gelap, bukan hitam */
+  --surface: #24211C;
+  --border: #353026;
+  --border-strong: #484236;
+  --fg: #D5CFC2;            /* krem hangat, bukan putih */
+  --fg-muted: #9A9285;
+  --fg-faint: #787165;
+  --accent: #9CAA7F;        /* olive, sedikit dinaikkan biar terbaca */
+  --accent-soft: #2E3327;
+
+  /* Status diredupkan — saturasi tinggi di layar gelap bikin silau */
+  --ok-fg: #8FC79B;   --ok-bg: #24301F;
+  --warn-fg: #D9BC7A; --warn-bg: #322B1C;
+  --bad-fg: #D9A0A0;  --bad-bg: #301F1F;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 32px 20px 64px;
+  padding-block: 32px 64px;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ── Judul halaman ─────────────────────────────────────────── */
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--olive-600); margin: 0 0 6px;
+}
+h1 {
+  font-size: 27px; font-weight: 700; letter-spacing: -.022em;
+  margin: 0 0 8px; text-wrap: balance; color: var(--cream-900);
+}
+.lede {
+  font-size: 15px; color: var(--fg-muted); max-width: 62ch;
+  margin: 0 0 20px;
+}
+
+/* ── Blok umum ─────────────────────────────────────────────── */
+.section { margin-top: 40px; }
+.section-head {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.section-head h2 {
+  font-size: 16px; font-weight: 650; margin: 0; letter-spacing: -.01em;
+}
+.section-head .tag {
+  font-size: 11px; color: var(--fg-faint); font-variant-numeric: tabular-nums;
+}
+.section-note {
+  font-size: 13px; color: var(--fg-muted); margin: 0 0 16px; max-width: 70ch;
+}
+
+/* ── Swatch ────────────────────────────────────────────────── */
+.swatches {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.swatch {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  background: var(--surface);
+}
+.swatch .chip { height: 76px; }
+.swatch .meta { padding: 9px 11px; }
+.swatch .hex {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px; font-weight: 600; letter-spacing: .01em;
+}
+.swatch .name { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+
+/* ── Ramp ──────────────────────────────────────────────────── */
+.ramp { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.ramp-card {
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); overflow: hidden;
+}
+.ramp-title {
+  padding: 10px 13px 8px; font-size: 12px; font-weight: 650;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+}
+.ramp-title span {
+  font-weight: 400; color: var(--fg-faint); font-size: 11px;
+  font-family: ui-monospace, Menlo, monospace;
+}
+.ramp-steps { display: flex; }
+.ramp-steps div {
+  flex: 1; height: 34px; display: flex; align-items: flex-end;
+  justify-content: center; padding-bottom: 3px;
+  font-size: 9px; font-weight: 600;
+}
+
+/* ══ MOCK: login ════════════════════════════════════════════ */
+.frame {
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  background: var(--cream-50); box-shadow: 0 1px 2px rgb(47 44 40 / .04);
+}
+.frame-bar {
+  display: flex; align-items: center; gap: 7px; padding: 9px 13px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.dots { display: flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); display: block; }
+.frame-url {
+  font-size: 11px; color: var(--fg-faint); font-family: ui-monospace, Menlo, monospace;
+  background: var(--bg); padding: 3px 10px; border-radius: 5px;
+}
+.frame-body { padding: 26px 20px; }
+
+.login {
+  max-width: 336px; margin: 0 auto; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px; padding: 26px 24px;
+  box-shadow: 0 1px 3px rgb(47 44 40 / .05);
+}
+.login h3 { font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -.015em; }
+.login .sub { font-size: 13px; color: var(--fg-muted); margin: 0 0 20px; }
+.field { margin-bottom: 13px; }
+.field label {
+  display: block; font-size: 13px; font-weight: 550;
+  margin-bottom: 5px; color: var(--fg);
+}
+.field input {
+  width: 100%; padding: 9px 11px; font-size: 14px; font-family: inherit;
+  border: 1px solid var(--border-strong); border-radius: 8px;
+  background: var(--surface); color: var(--fg);
+}
+.field input::placeholder { color: var(--fg-faint); }
+.btn {
+  width: 100%; padding: 9px 14px; font-size: 14px; font-weight: 600;
+  font-family: inherit; border: 0; border-radius: 8px; cursor: default;
+  background: var(--accent); color: var(--surface);
+}
+.login .foot { font-size: 12px; color: var(--fg-faint); text-align: center; margin: 14px 0 0; }
+
+/* ══ MOCK: app shell ════════════════════════════════════════ */
+.app { display: grid; grid-template-columns: 200px 1fr; min-height: 430px; }
+
+.side { background: var(--surface); border-right: 1px solid var(--border); padding: 11px 9px; }
+.side .cap {
+  font-size: 10px; font-weight: 650; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--fg-faint); padding: 4px 9px 7px;
+}
+.nav {
+  display: flex; align-items: center; gap: 9px; padding: 8px 10px;
+  border-radius: 7px; font-size: 13.5px; color: var(--fg-muted); margin-bottom: 1px;
+}
+.nav.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav .ic { width: 15px; text-align: center; font-size: 13px; filter: saturate(.85); }
+
+.main { padding: 15px 17px; min-width: 0; }
+
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 17px; background: var(--surface);
+  border-bottom: 1px solid var(--border); margin: -15px -17px 15px;
+}
+.brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.brand .logo {
+  width: 31px; height: 31px; border-radius: 7px; flex: none;
+  background: var(--accent); display: grid; place-items: center; color: var(--surface);
+}
+.brand h4 { font-size: 13.5px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.brand p { font-size: 11px; color: var(--fg-faint); margin: 0; }
+.who { display: flex; align-items: center; gap: 8px; flex: none; }
+.who .av {
+  width: 27px; height: 27px; border-radius: 50%; background: var(--accent-soft);
+  color: var(--accent); font-size: 12px; font-weight: 650;
+  display: grid; place-items: center;
+}
+.who .nm { font-size: 12px; line-height: 1.25; text-align: right; }
+.who .nm b { display: block; font-weight: 600; }
+.who .nm span { color: var(--fg-faint); font-size: 10.5px; }
+.who .out {
+  font-size: 11px; color: var(--fg-muted); border: 1px solid var(--border-strong);
+  padding: 4px 8px; border-radius: 6px; margin-left: 3px;
+}
+
+.page-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 13px; }
+.page-h h2 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -.015em; }
+.page-h p { font-size: 12.5px; color: var(--fg-muted); margin: 2px 0 0; }
+
+/* Stat tiles */
+.stats { display: grid; gap: 11px; grid-template-columns: repeat(4, 1fr); margin-bottom: 15px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 11px; padding: 13px 14px;
+}
+.stat .k { font-size: 12px; color: var(--fg-muted); margin-bottom: 3px; }
+.stat .v {
+  font-size: 19px; font-weight: 700; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat .d { font-size: 11px; margin-top: 3px; color: var(--ok-fg); }
+.stat .d.neg { color: var(--bad-fg); }
+
+/* Card + table */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 11px; overflow: hidden;
+}
+.card-h {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.card-h h3 { font-size: 14px; font-weight: 650; margin: 0; }
+.card-h p { font-size: 11.5px; color: var(--fg-faint); margin: 1px 0 0; }
+.card-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  font-size: 11.5px; color: var(--fg-muted); border: 1px solid var(--border-strong);
+  border-radius: 6px; padding: 4px 9px; background: var(--surface);
+}
+.chip.solid { background: var(--accent); color: var(--surface); border-color: var(--accent); font-weight: 600; }
+
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+th {
+  text-align: left; padding: 9px 12px; background: var(--bg);
+  font-size: 10.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--fg-muted); white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--fg-muted); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--bg); }
+td.name { font-weight: 550; color: var(--fg); }
+td.money { font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+.b {
+  display: inline-flex; align-items: center; font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 99px; white-space: nowrap;
+}
+.b-ok   { background: var(--ok-bg);   color: var(--ok-fg); }
+.b-warn { background: var(--warn-bg); color: var(--warn-fg); }
+.b-mute { background: var(--border); color: var(--fg-muted); }
+.b-acc  { background: var(--accent-soft); color: var(--accent); }
+
+/* ── Catatan ───────────────────────────────────────────────── */
+.note {
+  border: 1px solid var(--border); border-left: 3px solid var(--olive-500);
+  border-radius: 8px; background: var(--surface); padding: 13px 15px;
+  font-size: 13px; color: var(--fg-muted); margin-top: 14px;
+}
+.note b { color: var(--cream-800); font-weight: 600; }
+.note code {
+  font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+  background: var(--cream-100); padding: 1px 5px; border-radius: 4px; color: var(--cream-800);
+}
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  body { padding-inline: 14px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .frame-body { padding: 18px 12px; }
+}
+
+/* ── Toggle tema ─────────────────────────────────────────────── */
+.tgl-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.tgl {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.tgl button {
+  font: inherit; font-size: 12.5px; font-weight: 550; cursor: pointer;
+  border: 0; background: transparent; color: var(--fg-muted);
+  padding: 5px 13px; border-radius: 6px; transition: background .12s, color .12s;
+}
+.tgl button:hover { color: var(--fg); }
+.tgl button[aria-pressed="true"] {
+  background: var(--accent); color: var(--surface);
+}
+.tgl button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Pratinjau Palet</p>
+  <h1>Olive &amp; Krem</h1>
+  <p class="lede">
+    Empat warna yang lu pilih, di-override lewat token <code>blue</code> dan <code>gray</code>
+    di <code>tailwind.config.ts</code>. Semua 255 Kemunculan warna di 29 file ikut berubah
+    tanpa satu pun file komponen disentuh.
+  </p>
+
+  <div class="tgl-row">
+    <div class="tgl" role="group" aria-label="Pilih tema">
+      <button type="button" id="t-light" aria-pressed="true">Terang</button>
+      <button type="button" id="t-dark" aria-pressed="false">Malam</button>
+      <button type="button" id="t-sys" aria-pressed="false">Sistem</button>
+    </div>
+    <span style="font-size:12.5px;color:var(--fg-faint)"><b style="color:var(--fg-muted)">Malam</b> eye-friendly · <b style="color:var(--fg-muted)">Sistem</b> palet terang</span>
+  </div>
+
+  <div class="section" style="margin-top:26px">
+    <div class="swatches">
+      <div class="swatch">
+        <div class="chip" style="background:#8B9A6E"></div>
+        <div class="meta">
+          <div class="hex">#8B9A6E</div>
+          <div class="name">Olive — aksen, tombol</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#F7F2EB"></div>
+        <div class="meta">
+          <div class="hex">#F7F2EB</div>
+          <div class="name">Krem — background halaman</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#EAE2D6"></div>
+        <div class="meta">
+          <div class="hex">#EAE2D6</div>
+          <div class="name">Krem tua — border, surface</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#EEEEEE"></div>
+        <div class="meta">
+          <div class="hex">#EEEEEE</div>
+          <div class="name">Abu muda — hover, subtle</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>Ramp turunan</h2>
+      <span class="tag">9 stop tiap warna, dari 4 warna dasar</span>
+    </div>
+    <p class="section-note">
+      Kode komponennya tetap <code>bg-blue-600</code> atau <code>text-gray-700</code> —
+      Tailwind baca nilai barunya dari config. Jadi diff cuma 1 file, dan revert cukup
+      hapus blok <code>colors</code>.
+    </p>
+
+    <div class="ramp">
+      <div class="ramp-card">
+        <div class="ramp-title">blue → olive <span>aksen</span></div>
+        <div class="ramp-steps">
+          <div style="background:#F4F6F1;color:#5F6B4A">50</div>
+          <div style="background:#E8EBE2;color:#5F6B4A">100</div>
+          <div style="background:#D3D8C6;color:#3D442F">200</div>
+          <div style="background:#B4BC9E;color:#2F2C28">300</div>
+          <div style="background:#98A37C;color:#2F2C28">400</div>
+          <div style="background:#8B9A6E;color:#fff">500</div>
+          <div style="background:#75835C;color:#fff">600</div>
+          <div style="background:#5F6B4A;color:#fff">700</div>
+          <div style="background:#4C553B;color:#fff">800</div>
+          <div style="background:#3D442F;color:#fff">900</div>
+        </div>
+      </div>
+
+      <div class="ramp-card">
+        <div class="ramp-title">gray → krem <span>netral</span></div>
+        <div class="ramp-steps">
+          <div style="background:#F7F2EB;color:#857E72">50</div>
+          <div style="background:#F2EDE4;color:#857E72">100</div>
+          <div style="background:#EAE2D6;color:#665F56">200</div>
+          <div style="background:#DED5C7;color:#4A453E">300</div>
+          <div style="background:#C9BFAF;color:#2F2C28">400</div>
+          <div style="background:#A8A092;color:#2F2C28">500</div>
+          <div style="background:#857E72;color:#fff">600</div>
+          <div style="background:#665F56;color:#fff">700</div>
+          <div style="background:#4A453E;color:#fff">800</div>
+          <div style="background:#2F2C28;color:#fff">900</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>Layar login</h2>
+      <span class="tag">/login</span>
+    </div>
+    <p class="section-note">Tombol masuk, border input, fokus — semua ikut olive.</p>
+
+    <div class="frame">
+      <div class="frame-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="frame-url">aplikasi-pkm.vercel.app/login</span>
+      </div>
+      <div class="frame-body">
+        <div class="login">
+          <h3>Masuk RPH</h3>
+          <p class="sub">Gunakan email yang diberikan pemilik</p>
+          <div class="field">
+            <label>Email</label>
+            <input type="text" placeholder="nama@rph.sch.id" value="">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="text" placeholder="••••••••" value="">
+          </div>
+          <button class="btn">Masuk</button>
+          <p class="foot">Belum punya akun? Hubungi pemilik untuk dibuatkan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>Penjualan</h2>
+      <span class="tag">/penjualan — data asli lu</span>
+    </div>
+    <p class="section-note">
+      Topbar, sidebar, tombol status, badge pembayaran. Warna status (hijau/merah/amber)
+      sengaja tidak disentuh — itu informasi, bukan hiasan.
+    </p>
+
+    <div class="frame">
+      <div class="frame-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="frame-url">aplikasi-pkm.vercel.app/penjualan</span>
+      </div>
+      <div class="frame-body" style="padding:0">
+        <div class="app">
+          <aside class="side">
+            <div class="cap">Menu</div>
+            <div class="nav"><span class="ic">📊</span>Dashboard</div>
+            <div class="nav"><span class="ic">🚚</span>Penerimaan</div>
+            <div class="nav"><span class="ic">🍗</span>Pemotongan</div>
+            <div class="nav"><span class="ic">📋</span>Papan Tulis</div>
+            <div class="nav on"><span class="ic">🧾</span>Penjualan</div>
+            <div class="nav"><span class="ic">💸</span>Pengeluaran</div>
+          </aside>
+
+          <div class="main">
+            <header class="top">
+              <div class="brand">
+                <span class="logo">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/>
+                  </svg>
+                </span>
+                <div>
+                  <h4>RPH Sistem Pencatatan</h4>
+                  <p>Rumah Potong Hewan — Digitalisasi Data Harian</p>
+                </div>
+              </div>
+              <div class="who">
+                <div class="nm"><b>Alfi</b><span>Operator</span></div>
+                <span class="av">A</span>
+                <span class="out">Keluar</span>
+              </div>
+            </header>
+
+            <div class="page-h">
+              <div>
+                <h2>Penjualan</h2>
+                <p>Modul 3 — pencatatan transaksi harian</p>
+              </div>
+              <span class="chip solid">+ Transaksi Baru</span>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <div class="k">Omset Bulan Ini</div>
+                <div class="v">Rp 356.000</div>
+                <div class="d">↑ 12% vs Sept</div>
+              </div>
+              <div class="stat">
+                <div class="k">Transaksi</div>
+                <div class="v">4</div>
+                <div class="d">↑ 3 dari Sept</div>
+              </div>
+              <div class="stat">
+                <div class="k">Belum Lunas</div>
+                <div class="v">Rp 227.000</div>
+                <div class="d neg">3 transaksi</div>
+              </div>
+              <div class="stat">
+                <div class="k">Belum Diambil</div>
+                <div class="v">4</div>
+                <div class="d neg">perlu dikejar</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-h">
+                <div>
+                  <h3>Riwayat Penjualan</h3>
+                  <p>4 transaksi</p>
+                </div>
+                <div class="card-tools">
+                  <span class="chip">Semua status</span>
+                  <span class="chip">Tanggal ↓</span>
+                </div>
+              </div>
+              <div class="scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Pemesan</th>
+                      <th>Item</th>
+                      <th>Total</th>
+                      <th>Pembayaran</th>
+                      <th>Ambil</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>01 Okt 2026</td>
+                      <td class="name">bp alfi</td>
+                      <td>BLD×2</td>
+                      <td class="money">Rp 90.000</td>
+                      <td><span class="b b-warn">Belum Lunas</span></td>
+                      <td><span class="b b-warn">Belum Diambil</span></td>
+                      <td><span class="b b-mute">Pending</span></td>
+                    </tr>
+                    <tr>
+                      <td>01 Okt 2026</td>
+                      <td class="name">Bp Galuh</td>
+                      <td>ATI×1</td>
+                      <td class="money">Rp 25.000</td>
+                      <td><span class="b b-warn">Belum Lunas</span></td>
+                      <td><span class="b b-warn">Belum Diambil</span></td>
+                      <td><span class="b b-mute">Pending</span></td>
+                    </tr>
+                    <tr>
+                      <td>01 Okt 2026</td>
+                      <td class="name">Bapa Jono</td>
+                      <td>ATI×2</td>
+                      <td class="money">Rp 40.000</td>
+                      <td><span class="b b-warn">Belum Lunas</span></td>
+                      <td><span class="b b-warn">Belum Diambil</span></td>
+                      <td><span class="b b-mute">Pending</span></td>
+                    </tr>
+                    <tr>
+                      <td>12 Sep 2026</td>
+                      <td class="name">Pak Anu</td>
+                      <td>PC×10</td>
+                      <td class="money">Rp 380.000</td>
+                      <td><span class="b b-ok">Lunas</span></td>
+                      <td><span class="b b-ok">Sudah Diambil</span></td>
+                      <td><span class="b b-acc">Selesai</span></td>
+                    </tr>
+                    <tr>
+                      <td>14 Sep 2026</td>
+                      <td class="name">Test Piutang</td>
+                      <td>PC×5</td>
+                      <td class="money">Rp 190.000</td>
+                      <td><span class="b b-ok">Lunas</span></td>
+                      <td><span class="b b-ok">Sudah Diambil</span></td>
+                      <td><span class="b b-acc">Selesai</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Yang berubah &amp; yang tetap</h2></div>
+    <div class="note">
+      <p style="margin:0 0 8px"><b>Berubah:</b> abu jadi krem, biru jadi olive. Tombol, link, fokus input, menu aktif, header logo.</p>
+      <p style="margin:0 0 8px"><b>Tetap:</b> hijau = Lunas/Aktif, merah = Belum Lunas/Nonaktif, amber = Pending. Warna ini informasi operasional, harus kebaca dalam 1 detik.</p>
+      <div class="section">
+    <div class="section-head"><h2>Tiga mode</h2></div>
+    <div class="note">
+      <p style="margin:0 0 8px"><b>Terang</b> — palet olive &amp; krem. Background krem, aksen olive tua.</p>
+      <p style="margin:0 0 8px"><b>Malam</b> — eye-friendly. Background coklat sangat gelap (bukan hitam pekat), teks krem hangat (bukan putih), kontras diturunkan, status diredupkan. Dipakai buat_shift malam.</p>
+      <p style="margin:0"><b>Sistem</b> — mengikuti setelan OS. Kalau OS lu terang, tampil terang. Persis sama kayak mode Terang.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Toggle tema — hanya untuk pratinjau. Preferensi disimpan di localStorage
+  // supaya pilihan lu bertahan saat file dibuka ulang.
+  (function () {
+    var KEY = "rph-palette-theme";
+    var root = document.documentElement;
+    var btns = {
+      light: document.getElementById("t-light"),
+      dark: document.getElementById("t-dark"),
+      sys: document.getElementById("t-sys"),
+    };
+
+    function apply(mode) {
+      try {
+        if (mode === "sys") root.removeAttribute("data-theme");
+        else root.setAttribute("data-theme", mode);
+        localStorage.setItem(KEY, mode);
+      } catch (e) {
+        /* localStorage bisa diblokir — abaikan, toggle tetap jalan sesaat */
+      }
+      for (var k in btns) {
+        btns[k].setAttribute("aria-pressed", String(k === mode));
+      }
+    }
+
+    // Default "sys": ikut OS. Kalau OS gelap, tetap palet TERANG — sesuai
+    // permintaan lu, mode gelap harus dipilih eksplisit.
+    var saved = "sys";
+    try {
+      saved = localStorage.getItem(KEY) || "sys";
+    } catch (e) {}
+
+    for (var k in btns) {
+      (function (key) {
+        btns[key].addEventListener("click", function () { apply(key); });
+      })(k);
+    }
+
+    apply(saved);
+  })();
+</script>

@@ -70,7 +70,9 @@ export function Layout({ children }: { children: ReactNode }) {
   if (!authChecked) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    // dark:bg-gray-900 (bukan 950) supaya ikut skala krem-coklat di
+    // tailwind.config.ts. 950 nggak ada di override → jatuh ke abu cooler.
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-300">
       {/* Topbar */}
       <header className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="flex h-16 items-center justify-between px-6">

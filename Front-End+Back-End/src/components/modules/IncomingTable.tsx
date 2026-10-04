@@ -62,23 +62,6 @@ export function IncomingTable() {
       ),
     },
     {
-      key: "rataRata",
-      header: "Rata-rata",
-      render: (r: (typeof filtered)[0]) => {
-        const avg = r.chickenIn > 0 && r.tonase > 0 ? r.tonase / r.chickenIn : 0;
-        if (!avg) return <span className="text-sm text-gray-400">-</span>;
-        const warn = avg < 2.4 || avg > 3.2;
-        return (
-          <span
-            className={`font-mono text-sm ${warn ? "text-amber-600" : ""}`}
-            title={warn ? "Di luar rentang broiler normal (2.4–3.2 kg)" : "Wajar"}
-          >
-            {avg.toFixed(2)} kg
-          </span>
-        );
-      },
-    },
-    {
       key: "totalHarga",
       header: "Total Harga",
       render: (r: (typeof filtered)[0]) => (

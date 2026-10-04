@@ -19,9 +19,9 @@ export interface IncomingRecord {
   chickenDead: number;    // ekor mati / afkir
   chickenBroken: number;  // ekor afkir ringan (dipisah untuk tracing)
   nopol: string;          // no. polisi kendaraan
-  tonase: number;         // berat masuk (kg) — wajib
-  hargaPerKg: number;     // harga per kg — wajib
-  totalHarga: number;     // total (auto: tonase × hargaPerKg)
+  tonase: number;         // berat masuk (kg)
+  hargaPerKg: number;     // harga per ekor (nama kolom historis "harga_per_kg")
+  totalHarga: number;     // total (auto: ekor × harga)
   kasbon: number;         // kasbon (opsional)
   notes: string;
   createdAt: string;

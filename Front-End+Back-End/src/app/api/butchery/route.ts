@@ -1,5 +1,5 @@
 import { getAdminClient } from "@/lib/supabase-server";
-import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
+import { ApiError, ok, route, readJson, field, num } from "@/lib/apiResponse";
 import { assertNotFuture } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
@@ -23,17 +23,23 @@ export const GET = route(async (req) => {
 export const POST = route(async (req) => {
   await requireAuth(req, "write");
   const b = await readJson<any>(req);
-  const date = b?.date, chickenCount = Number(b?.chickenCount), notes = b?.notes ?? "";
-  const incomingId = b?.incomingId ?? null;
+  const date = b?.date,
+    chickenCount = num(b, "chickenCount", "chicken_count"),
+    notes = field(b, "notes") ?? "";
+  const incomingId = field(b, "incomingId", "incoming_id") ?? null;
   const parts: any[] = Array.isArray(b?.parts) ? b.parts : [];
 
   assertNotFuture(date);
-  if (!(chickenCount >= 1)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenCount: "Minimal 1 ekor" }, 400);
+  if (!Number.isFinite(chickenCount) || !(chickenCount >= 1))
+    throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenCount: "Minimal 1 ekor" }, 400);
   if (parts.length === 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { parts: "Minimal 1 bagian" }, 400);
 
   const clean = parts
-    .map((p) => ({ productCode: String(p.productCode ?? ""), qtyKg: Number(p.qtyKg) }))
-    .filter((p) => p.qtyKg > 0 && p.productCode);
+    .map((p: any) => ({
+      productCode: String(field(p, "productCode", "product_code") ?? ""),
+      qtyKg: num(p, "qtyKg", "qty_kg"),
+    }))
+    .filter((p: any) => p.qtyKg > 0 && p.productCode);
   if (clean.length === 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { parts: "Minimal 1 bagian qty>0" }, 400);
   for (const p of clean) {
     if (!KG_CODES.includes(p.productCode))

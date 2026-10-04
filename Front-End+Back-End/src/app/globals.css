@@ -86,16 +86,21 @@
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #DED5C7;
   border-radius: 4px;
 }
+::-webkit-scrollbar-track {
+  background: #F7F2EB;
+}
 
+/* Mode gelap: coklat hangat, bukan abu cooler. Sama dengan skala gray
+   900–700 di tailwind.config.ts supaya scrollbar menyatu dengan app. */
 html.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #4A453E;
 }
 
 html.dark ::-webkit-scrollbar-track {
-  background: #111827;
+  background: #211E1A;
 }
 
 /* ────────────────────────────────────────────────

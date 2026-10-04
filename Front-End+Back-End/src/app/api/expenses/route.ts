@@ -1,5 +1,5 @@
 import { getAdminClient } from "@/lib/supabase-server";
-import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
+import { ApiError, ok, route, readJson, field, num } from "@/lib/apiResponse";
 import { assertNotFuture, isOneOf, EXPENSE_CATEGORIES, EXPENSE_DIRECTIONS } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
@@ -23,9 +23,12 @@ export const GET = route(async (req) => {
 export const POST = route(async (req) => {
   await requireAuth(req, "write");
   const b = await readJson<any>(req);
-  const date = b?.date, category = b?.category, description = b?.description ?? "",
-    direction = b?.direction ?? "keluar", sourceFund = String(b?.sourceFund ?? "").trim(),
-    amount = Number(b?.amount);
+  const date = b?.date,
+    category = field(b, "category"),
+    description = field(b, "description") ?? "",
+    direction = field(b, "direction") ?? "keluar",
+    sourceFund = String(field(b, "sourceFund", "source_fund") ?? "").trim(),
+    amount = num(b, "amount");
 
   assertNotFuture(date);
   if (!isOneOf(EXPENSE_CATEGORIES, category)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { category: "Kategori tidak valid" }, 400);
@@ -33,7 +36,8 @@ export const POST = route(async (req) => {
   // Sumber uang = teks bebas (bukan enum), asal tidak kosong.
   if (!sourceFund) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { sourceFund: "Wajib diisi" }, 400);
   if (!description.trim()) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { description: "Wajib diisi" }, 400);
-  if (!(amount > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { amount: "Nominal harus > 0" }, 400);
+  if (!Number.isFinite(amount) || !(amount > 0))
+    throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { amount: "Nominal harus angka > 0" }, 400);
 
   const { data, error } = await getAdminClient().from("expenses").insert({
     date, category, direction, source_fund: sourceFund, description, amount,

@@ -87,7 +87,7 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
               tonase: r.tonase,
               hargaPerKg: r.hargaPerKg,
               kasbon: r.kasbon,
-              totalHarga: r.tonase * r.hargaPerKg,
+              totalHarga: r.chickenIn * r.hargaPerKg,
               notes: r.notes,
             });
             ok++;

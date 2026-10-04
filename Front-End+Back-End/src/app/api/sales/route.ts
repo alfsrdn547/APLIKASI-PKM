@@ -1,5 +1,5 @@
 import { getAdminClient } from "@/lib/supabase-server";
-import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
+import { ApiError, ok, route, readJson, field, num } from "@/lib/apiResponse";
 import { assertNotFuture, checkSaleStock, isOneOf, PAY_STATUSES, PICKUP_STATUSES, ORDER_STATUSES } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
@@ -26,13 +26,13 @@ export const POST = route(async (req) => {
   const b = await readJson<any>(req);
   const body = {
     date: b?.date,
-    customerName: b?.customerName ?? "",
-    customerPhone: b?.customerPhone ?? "",
-    notes: b?.notes ?? "",
-    payStatus: b?.payStatus ?? "belum_lunas",
-    pickupStatus: b?.pickupStatus ?? "belum_diambil",
-    paidAmount: Number(b?.paidAmount ?? 0),
-    status: b?.status ?? "pending",
+    customerName: field(b, "customerName", "customer_name") ?? "",
+    customerPhone: field(b, "customerPhone", "customer_phone") ?? "",
+    notes: field(b, "notes") ?? "",
+    payStatus: field(b, "payStatus", "pay_status") ?? "belum_lunas",
+    pickupStatus: field(b, "pickupStatus", "pickup_status") ?? "belum_diambil",
+    paidAmount: num(b, "paidAmount", "paid_amount"),
+    status: field(b, "status") ?? "pending",
     items: Array.isArray(b?.items) ? b.items : [],
   };
 
@@ -47,12 +47,13 @@ export const POST = route(async (req) => {
   if (!isOneOf(PICKUP_STATUSES, body.pickupStatus)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { pickupStatus: "Status ambil tidak valid" }, 400);
   if (!isOneOf(ORDER_STATUSES, body.status)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { status: "Status tidak valid" }, 400);
 
-  // Items server-side (qty/price valid; subtotal trigger isi)
+  // Items server-side (qty/price valid; subtotal trigger isi).
+  // productCode/productName/quantity/unitPrice menerima camelCase atau snake_case.
   const items = body.items
     .map((i: any) => ({
-      productCode: String(i.productCode ?? ""),
-      quantity: Number(i.quantity),
-      unitPrice: Number(i.unitPrice),
+      productCode: String(field(i, "productCode", "product_code") ?? ""),
+      quantity: num(i, "quantity"),
+      unitPrice: num(i, "unitPrice", "unit_price"),
     }))
     .filter((i: any) => i.quantity > 0 && i.unitPrice > 0 && i.productCode);
   if (items.length === 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { items: "quantity & unitPrice harus > 0" }, 400);

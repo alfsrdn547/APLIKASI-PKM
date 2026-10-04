@@ -170,6 +170,7 @@ function buildGuideSheet(module: ImportModule): XLSX.WorkSheet {
     case "penerimaan":
       rows.push(
         ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati · ayam_cacat · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
+        ["   Catatan: 'harga_per_kg' = harga per EKOR (bukan per kg). Total = ayam_masuk × harga_per_kg."],
         ["4. Angka kosong dianggap 0, kecuali ayam_masuk wajib > 0."],
         ["5. Contoh baris: 2026-09-15 | 100 | 2 | 1 | B 1234 CD | 180 | 38000 | 0 | Catatan opsional"],
         ["6. Satu baris = satu penerimaan."]

@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
+// "Malam" bukan "Gelap": palet night-nya eye-friendly (coklat hangat,
+// bukan hitam-putih) dan di-tint olive. Labelnyasayang begitu biar
+// user tahu bedanya dari sekadar mode gelap biasa.
 const OPTIONS = [
   { value: "light", label: "Terang", icon: "☀️" },
-  { value: "dark", label: "Gelap", icon: "🌙" },
+  { value: "dark", label: "Malam", icon: "🌙" },
   { value: "system", label: "Sistem", icon: "💻" },
 ] as const;
 

@@ -1,5 +1,5 @@
 import { getAdminClient } from "@/lib/supabase-server";
-import { ApiError, ok, route, readJson } from "@/lib/apiResponse";
+import { ApiError, ok, route, readJson, field, num } from "@/lib/apiResponse";
 import { assertNotFuture } from "@/lib/validator";
 import { writeAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/auth";
@@ -22,25 +22,31 @@ export const GET = route(async (req) => {
 export const POST = route(async (req) => {
   await requireAuth(req, "write");
   const b = await readJson<any>(req);
-  const date = b?.date, chickenIn = Number(b?.chickenIn), chickenDead = Number(b?.chickenDead ?? 0),
-    chickenBroken = Number(b?.chickenBroken ?? 0),
-    nopol = b?.nopol ?? "", tonase = Number(b?.tonase ?? 0),
-    hargaPerKg = Number(b?.hargaPerKg ?? 0), kasbon = Number(b?.kasbon ?? 0),
-    notes = b?.notes ?? "";
+  // Terima camelCase (app) DAN snake_case (curl/manual). Tanpa ini,
+  // `chicken_in` jadi undefined → Number() = NaN → 400 dengan pesan
+  // "Harus > 0" yang jauh dari penyebab sebenarnya.
+  const date = b?.date;
+  const chickenIn = num(b, "chickenIn", "chicken_in");
+  const chickenDead = num(b, "chickenDead", "chicken_dead");
+  const chickenBroken = num(b, "chickenBroken", "chicken_broken");
+  const nopol = field(b, "nopol") ?? "";
+  const tonase = num(b, "tonase", "tonase_kg");
+  const hargaPerKg = num(b, "hargaPerKg", "harga_per_kg");
+  const kasbon = num(b, "kasbon");
+  const notes = field(b, "notes") ?? "";
 
   assertNotFuture(date);
-  if (!(chickenIn > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenIn: "Harus > 0" }, 400);
+  if (!Number.isFinite(chickenIn) || !(chickenIn > 0))
+    throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenIn: "Harus angka > 0" }, 400);
   if (chickenDead > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenDead: "Mati melebihi masuk" }, 400);
   if (chickenBroken > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenBroken: "Cacat melebihi masuk" }, 400);
-  // Tonase & harga per kg wajib — total_harga = tonase × harga_per_kg.
-  // Konsisten dengan label "Harga per Kg" (satuan kg, bukan ekor).
-  if (!(tonase > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { tonase: "Tonase wajib diisi" }, 400);
-  if (!(hargaPerKg > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { hargaPerKg: "Harga per kg wajib diisi" }, 400);
 
   const { data, error } = await getAdminClient().from("incoming").insert({
     date, chicken_in: chickenIn, chicken_dead: chickenDead, chicken_broken: chickenBroken,
     nopol, tonase_kg: tonase, harga_per_kg: hargaPerKg,
-    total_harga: Math.round(tonase * hargaPerKg * 100) / 100,
+    // Kolom DB bernama "harga_per_kg" tapi isinya harga PER EKOR (label UI
+    // sudah disesuaikan). Rumus: ekor × harga_per_ekor.
+    total_harga: Math.round(chickenIn * hargaPerKg * 100) / 100,
     kasbon, notes,
   }).select().single();
   if (error) throw new ApiError("DB_ERROR", error.message, {}, 500);
