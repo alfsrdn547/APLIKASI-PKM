@@ -8,8 +8,9 @@
    ──────────────────────────────────────────────── */
 
 /* ────────────────────────────────────────────────
-   Print — Invoice 2 Rangkap (A4)
-   Strategi: sembunyikan semua, tampilkan hanya .print-2up
+   Print — Invoice 1 Rangkap (A4)
+   Strategi: area cetak di-portal ke <body>, lalu semua
+   anak body lain di-display:none saat print.
    ──────────────────────────────────────────────── */
 @page {
   size: A4;
@@ -17,43 +18,29 @@
 }
 
 /* Layar: area cetak disembunyikan */
-.print-2up {
+.print-root {
   display: none;
 }
 
 @media print {
-  /* Sembunyikan seluruh app */
-  body * {
-    visibility: hidden;
+  /* Sembunyikan seluruh app — display, bukan visibility:
+     visibility tetap menahan layout sehingga lahir
+     halaman kedua kosong. Root print adalah anak langsung
+     <body>, jadi aman disembunyikan lewat selector ini. */
+  body > *:not(.print-root) {
+    display: none !important;
   }
 
-  /* Hanya area cetak yang terlihat */
-  .print-2up,
-  .print-2up * {
-    visibility: visible;
-  }
-  .print-2up {
-    display: block;
-    position: absolute;
-    left: 0;
-    top: 0;
+  .print-root {
+    display: block !important;
     width: 100%;
   }
 
-  /* Setiap rangkap = satu halaman */
+  /* Satu invoice = satu halaman A4 */
   .invoice-sheet {
     width: 100%;
     margin: 0;
     padding: 10px 0;
-  }
-  .invoice-sheet:first-of-type {
-    break-after: page;
-    page-break-after: always;
-  }
-
-  /* Garis potong antar copy (tampil pada halaman pertama) */
-  .print-cut-line {
-    display: none;
   }
 
   /* Kertas selalu putih + teks hitam, apa pun tema layarnya.
@@ -64,8 +51,8 @@
      putih, jadi garis tetap terbaca, sementara memaksa warnanya justru
      meratakan garis tebal kop invoice jadi abu-abu pucat.
      Teks dipaksa monokrom karena printer RPH umumnya printer thermal. */
-  .print-2up,
-  .print-2up *,
+  .print-root,
+  .print-root *,
   .print-report-sheet,
   .print-report-sheet * {
     background: transparent !important;

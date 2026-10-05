@@ -20,7 +20,7 @@ export default function PenjualanPage() {
       <div>
         <h2 className="text-xl font-bold">Penjualan & Pemesanan</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Modul 3 — Transaksi penjualan, filter/sort riwayat & cetak invoice 2 rangkap
+          Modul 3 — Transaksi penjualan, filter/sort riwayat & cetak invoice
         </p>
       </div>
 

@@ -70,5 +70,5 @@ Set env (`.env.local` + Vercel):
 
 ## Output & State
 - **Whiteboard** & **Dashboard** = computed dari store (re-derive tiap render, <2 detik).
-- **Invoice 2 rangkap** — klik baris status Selesai/Proses di riwayat → tombol Cetak.
+- **Invoice 1 rangkap** — klik baris status Selesai/Proses di riwayat → tombol Cetak.
   Layout print ada di `src/app/globals.css` (`@media print`): 2 lembar per A4, garis putus antar rangkap.

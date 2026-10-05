@@ -11,7 +11,7 @@
 |---|---|---|
 | Validasi stok penjualan | `SalesForm.tsx`, `useRPHStore.getStockForDate`, `getWhiteboard` (manual butchery = sumber) | Menolak qty jual > stok real-time |
 | Ekspor laporan | `ExportModal.tsx` (CSV/JSON/Print), `DashboardContent` (rekap) | CSV "Excel", JSON, Print/PDF (via browser print) |
-| Print invoice | `InvoicePrint.tsx` (order) | Invoice 2 rangkap |
+| Print invoice | `InvoicePrint.tsx` (order) | Invoice 1 rangkap |
 
 **Environment uji:** Vercel prod `aplikasi-pkm.vercel.app`, Supabase project `cftkiebockgjdnlzuppp`, browser desktop (Chrome/Edge) + Windows.
 
@@ -127,13 +127,13 @@
 | **Expected Result** | Dialog print muncul. **Bug QA:** saat ini `window.print()` mencetak **seluruh halaman** (dashboard + modal), bukan hanya rekap — hasil PDF kelebihan konten. |
 | **Pass/Fail Criteria** | **PASS** bila hanya rekap yg tercetak. **FAIL** bila seluruh dashboard ikut (kondisi saat ini). |
 
-### TC-EXP-05: Print Invoice penjualan (2 rangkap)
+### TC-EXP-05: Print Invoice penjualan (1 rangkap)
 | Item | Isi |
 |---|---|
 | **Test Scenario** | Cetak invoice order tertentu |
 | **Test Steps** | 1. Buka `/penjualan`. 2. Klik order → Invoice. 3. Cetak. |
-| **Expected Result** | Keluar 2 lembar (rangkap admin + customer) dgn header, item, total, tanda tangan. |
-| **Pass/Fail Criteria** | **PASS** jika 2 lembar + isi benar. |
+| **Expected Result** | Keluar 1 lembar dgn header, item, total, tanda tangan. |
+| **Pass/Fail Criteria** | **PASS** jika 1 lembar + isi benar. |
 
 ### TC-EXP-06: Rentang laporan — filter 30 hari benar
 | Item | Isi |

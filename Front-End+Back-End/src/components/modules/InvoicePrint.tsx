@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { SalesOrder } from "@/types";
 import { formatRp, formatDisplayDate } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -9,17 +10,14 @@ interface InvoicePrintProps {
   onClose: () => void;
 }
 
-// ─── Satu lembar invoice (dipakai 2x: Admin & Customer) ─────────────
-function InvoiceSheet({ order, variant }: { order: SalesOrder; variant: "admin" | "customer" }) {
-  const isAdmin = variant === "admin";
+// ─── Satu lembar invoice (A4) ────────────────────────────────────────
+function InvoiceSheet({ order }: { order: SalesOrder }) {
   return (
     <div className="invoice-sheet rounded border border-gray-300 p-6">
       {/* Header */}
       <div className="flex items-start justify-between border-b-2 border-gray-800 pb-3">
         <div>
-          <h2 className="text-xl font-bold uppercase tracking-wide">
-            {isAdmin ? "Invoice — Copy Admin" : "Invoice — Copy Customer"}
-          </h2>
+          <h2 className="text-xl font-bold uppercase tracking-wide">Invoice</h2>
           <p className="text-sm text-gray-600">Rumah Potong Hewan (RPH)</p>
           <p className="text-xs text-gray-500">Digitalisasi Sistem Pencatatan — Modul 3</p>
         </div>
@@ -29,11 +27,6 @@ function InvoiceSheet({ order, variant }: { order: SalesOrder; variant: "admin" 
           <p className="mt-1 text-xs text-gray-500">
             {formatDisplayDate(order.date)}
           </p>
-          {isAdmin && (
-            <p className="mt-1 rounded bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600">
-              ARSIP ADMIN
-            </p>
-          )}
         </div>
       </div>
 
@@ -104,41 +97,44 @@ function InvoiceSheet({ order, variant }: { order: SalesOrder; variant: "admin" 
   );
 }
 
-// ─── Wrapper: 2 rangkap A4 ───────────────────────────────────────────
+// ─── Wrapper: 1 rangkap A4 ───────────────────────────────────────────
 export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
+  const [sheet, setSheet] = useState<HTMLDivElement | null>(null);
+
   const handlePrint = () => {
-    // Print only via CSS media query — no iframe juggling needed
+    // Salin sheet ke root <body> saat print, lalu bersihkan.
+    // CSS menyembunyikan semua anak body lain (display:none),
+    // jadi hanya .print-root yang tersisa — tanpa halaman kosong kedua.
+    const root = document.createElement("div");
+    root.className = "print-root";
+    root.appendChild(sheet!.cloneNode(true));
+    document.body.appendChild(root);
+    const restore = () => {
+      root.remove();
+      window.removeEventListener("afterprint", restore);
+    };
+    window.addEventListener("afterprint", restore);
     window.print();
   };
 
   return (
     <>
       {/* Overlay on screen — hidden saat print */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6 print:static print:bg-white print:p-0 print:block">
-        {/* Popup body — hidden at print */}
-        <div className="print:hidden w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6 print:hidden">
+        {/* Popup body */}
+        <div className="w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-900">
           <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
             <div>
               <h3 className="text-base font-semibold">Pratinjau & Cetak Invoice</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Layout 2 rangkap siap A4 (potong di garis putus-putus)
+                Layout 1 rangkap siap A4
               </p>
             </div>
             <Button variant="ghost" onClick={onClose}>✕</Button>
           </div>
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto bg-gray-100 p-5 sm:max-h-[65vh] dark:bg-gray-950">
-            {/* Screen preview: 2 rangkap stacked */}
-            <div className="hidden md:block">
-              <InvoiceSheet order={order} variant="admin" />
-              <div className="my-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                <span className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
-                ✂ Potong disini ✂
-                <span className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
-              </div>
-              <InvoiceSheet order={order} variant="customer" />
-            </div>
-            <div className="md:hidden">
-              <InvoiceSheet order={order} variant="admin" />
+          <div className="max-h-[65vh] overflow-y-auto bg-gray-100 p-5 dark:bg-gray-950">
+            <div ref={setSheet}>
+              <InvoiceSheet order={order} />
             </div>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
@@ -147,13 +143,6 @@ export function InvoicePrint({ order, onClose }: InvoicePrintProps) {
               Cetak Invoice
             </Button>
           </div>
-        </div>
-
-        {/* Print-only layout — exact 2 rangkap for CSS @media print */}
-        <div className="print-2up hidden print:block">
-          <InvoiceSheet order={order} variant="admin" />
-          <div className="print-cut-line" />
-          <InvoiceSheet order={order} variant="customer" />
         </div>
       </div>
     </>
