@@ -76,21 +76,18 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* Topbar */}
       <header className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white dark:bg-blue-500">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
-                <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none" />
-                <circle cx="7" cy="12" r="1.5" fill="currentColor" stroke="none" />
-                <circle cx="7" cy="17" r="1.5" fill="currentColor" stroke="none" />
-              </svg>
+          <div className="flex items-center gap-2.5">
+            {/* Logo PT PANGAN MAKMUR NUSANTARA. PNG-nya background putih →
+                di mode dark dikasih bg-white + padding biar gak "lubang". */}
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1 ring-1 ring-gray-200 dark:ring-gray-700">
+              <img src="/logo.png" alt="Logo PT PANGAN MAKMUR NUSANTARA" className="h-full w-full object-contain" />
             </div>
             <div>
               <h1 className="text-base font-bold leading-tight">
                 RPH Sistem Pencatatan
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Rumah Potong Hewan — Digitalisasi Data Harian
+                Rumah Potong Harian — Digitalisasi Data Harian
               </p>
             </div>
           </div>

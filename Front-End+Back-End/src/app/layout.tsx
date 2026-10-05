@@ -8,7 +8,8 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "RPH · Sistem Pencatatan",
   description:
-    "Digitalisasi pencatatan harian Rumah Potong Hewan (RPH) — penerimaan, penjualan, pengeluaran & rekap.",
+    "Digitalisasi pencatatan harian Rumah Potong Harian (RPH) — penerimaan, penjualan, pengeluaran & rekap.",
+  icons: { icon: "/logo.png", apple: "/logo.png" },
 };
 
 // Address bar browser ikut palet. 2 mode = 2 warna; next-themes menulis

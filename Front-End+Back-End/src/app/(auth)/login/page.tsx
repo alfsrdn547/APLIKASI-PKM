@@ -39,7 +39,10 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-        <div className="mb-6">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl bg-white p-2 ring-1 ring-gray-200 dark:ring-gray-700">
+            <img src="/logo.png" alt="Logo PT PANGAN MAKMUR NUSANTARA" className="h-full w-full object-contain" />
+          </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Masuk RPH
           </h2>
