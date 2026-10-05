@@ -31,7 +31,7 @@ export function IncomingTable() {
     },
     {
       key: "chickenDead",
-      header: "Mati",
+      header: "Afkir",
       render: (r: (typeof filtered)[0]) => (
         <span className="font-mono text-red-600">
           {r.chickenDead.toLocaleString("id-ID")}
@@ -59,6 +59,18 @@ export function IncomingTable() {
       header: "Tonase (kg)",
       render: (r: (typeof filtered)[0]) => (
         <span className="font-mono text-sm">{r.tonase ? r.tonase.toLocaleString("id-ID") : "-"}</span>
+      ),
+    },
+    {
+      key: "avgWeight",
+      // Diturunkan, bukan kolom DB: tonase ÷ ayam masuk.
+      header: "Rata-rata (kg/ekor)",
+      render: (r: (typeof filtered)[0]) => (
+        <span className="font-mono text-sm">
+          {r.chickenIn > 0 && r.tonase > 0
+            ? (r.tonase / r.chickenIn).toLocaleString("id-ID", { maximumFractionDigits: 2 })
+            : "-"}
+        </span>
       ),
     },
     {

@@ -71,6 +71,14 @@ export function IncomingForm() {
     else if (!isNonNegative(brokenNum))
       errs.chickenBroken = "Tidak boleh negatif";
 
+    // Nopol & tonase wajib — kolom "opsional" dihapus sesuai permintaan tim.
+    if (!form.nopol.trim()) errs.nopol = "No. polisi wajib diisi";
+    const tonaseNum = parseFloat(form.tonase);
+    if (!form.tonase || isNaN(tonaseNum))
+      errs.tonase = "Tonase wajib diisi";
+    else if (!isPositive(tonaseNum))
+      errs.tonase = "Tonase harus lebih dari 0";
+
     // Cross-field: ayam mati tidak boleh melebihi ayam masuk
     if (isPositive(inNum) && deadNum > inNum)
       errs.chickenDead = `Ayam mati (${deadNum}) melebihi ayam masuk (${inNum})`;
@@ -106,6 +114,9 @@ export function IncomingForm() {
   const inNum = parseFloat(form.chickenIn) || 0;
   const deadNum = parseFloat(form.chickenDead) || 0;
   const brokenNum = parseFloat(form.chickenBroken) || 0;
+  const tonaseNum = parseFloat(form.tonase) || 0;
+  // Rata-rata berat = tonase ÷ ayam masuk (hasil bagi, bukan input user).
+  const avgWeight = inNum > 0 && tonaseNum > 0 ? tonaseNum / inNum : 0;
 
   return (
     <Card
@@ -140,17 +151,6 @@ export function IncomingForm() {
           type="number"
           min={0}
           step="any"
-          label="Ayam Mati / Afkir (ekor)"
-          placeholder="Contoh: 12"
-          value={form.chickenDead}
-          onChange={(e) => set("chickenDead", e.target.value)}
-          error={errors.chickenDead}
-        />
-
-        <Input
-          type="number"
-          min={0}
-          step="any"
           label="Cacat Ringan (ekor)"
           placeholder="Contoh: 5"
           value={form.chickenBroken}
@@ -159,21 +159,34 @@ export function IncomingForm() {
         />
 
         <Input
+          type="number"
+          min={0}
+          step="any"
+          label="Ayam Mati / Afkir (ekor)"
+          placeholder="Contoh: 12"
+          value={form.chickenDead}
+          onChange={(e) => set("chickenDead", e.target.value)}
+          error={errors.chickenDead}
+        />
+
+        <Input
           type="text"
-          label="No. Polisi Kendaraan (opsional)"
+          label="No. Polisi Kendaraan"
           placeholder="Contoh: B 1234 XX"
           value={form.nopol}
           onChange={(e) => set("nopol", e.target.value)}
+          error={errors.nopol}
         />
 
         <Input
           type="number"
           min={0}
           step="any"
-          label="Tonase / Berat (kg, opsional)"
+          label="Tonase / Berat (kg)"
           placeholder="Contoh: 900"
           value={form.tonase}
           onChange={(e) => set("tonase", e.target.value)}
+          error={errors.tonase}
         />
 
         <Input
@@ -210,7 +223,7 @@ export function IncomingForm() {
           <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
             Kalkulasi Stok Siap Produksi (real-time)
           </p>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Masuk</p>
               <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
@@ -218,7 +231,7 @@ export function IncomingForm() {
               </p>
             </div>
             <div className="border-x border-blue-200 dark:border-blue-900">
-              <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Mati</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Afkir</p>
               <p className="text-lg font-bold text-red-600 dark:text-red-400">
                 −{Number.isFinite(deadNum) ? deadNum.toLocaleString("id-ID") : 0} ekor
               </p>
@@ -232,9 +245,16 @@ export function IncomingForm() {
                 ekor
               </p>
             </div>
+            <div className="border-x border-blue-200 dark:border-blue-900">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Rata-rata Berat</p>
+              <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
+                {avgWeight > 0 ? avgWeight.toLocaleString("id-ID", { maximumFractionDigits: 2 }) : "—"}{" "}
+                kg/ekor
+              </p>
+            </div>
           </div>
           <p className="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70">
-            Formula: Produksi Bersih = Ayam Masuk − Ayam Mati (afkir total)
+            Formula: Produksi Bersih = Ayam Masuk − Ayam Afkir · Rata-rata = Tonase ÷ Ayam Masuk
           </p>
         </div>
 

@@ -169,10 +169,12 @@ function buildGuideSheet(module: ImportModule): XLSX.WorkSheet {
   switch (module) {
     case "penerimaan":
       rows.push(
-        ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati · ayam_cacat · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
-        ["   Catatan: 'harga_per_kg' = harga per EKOR (bukan per kg). Total = ayam_masuk × harga_per_kg."],
+        ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati (afkir) · ayam_cacat · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
+        ["   'nopol' & 'tonase_kg' WAJIB diisi. 'harga_per_kg' = harga per EKOR (bukan per kg). Total = ayam_masuk × harga_per_kg."],
+        ["   Rata-rata berat (kg/ekor) dihitung otomatis dari tonase_kg ÷ ayam_masuk — tidak perlu kolom di file."],
         ["4. Angka kosong dianggap 0, kecuali ayam_masuk wajib > 0."],
         ["5. Contoh baris: 2026-09-15 | 100 | 2 | 1 | B 1234 CD | 180 | 38000 | 0 | Catatan opsional"],
+        ["   (100 ekor, 180 kg → rata-rata 1,8 kg/ekor)"],
         ["6. Satu baris = satu penerimaan."]
       );
       break;

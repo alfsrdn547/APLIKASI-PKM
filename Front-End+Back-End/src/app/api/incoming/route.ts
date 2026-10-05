@@ -40,6 +40,9 @@ export const POST = route(async (req) => {
     throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenIn: "Harus angka > 0" }, 400);
   if (chickenDead > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenDead: "Mati melebihi masuk" }, 400);
   if (chickenBroken > chickenIn) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { chickenBroken: "Cacat melebihi masuk" }, 400);
+  // Nopol & tonase wajib — form tidak lagi menandai keduanya "(opsional)".
+  if (!String(nopol).trim()) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { nopol: "No. polisi wajib diisi" }, 400);
+  if (!(tonase > 0)) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { tonase: "Harus angka > 0" }, 400);
 
   const { data, error } = await getAdminClient().from("incoming").insert({
     date, chicken_in: chickenIn, chicken_dead: chickenDead, chicken_broken: chickenBroken,
