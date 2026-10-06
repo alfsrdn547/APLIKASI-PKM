@@ -98,6 +98,7 @@ export interface ExpenseRecord {
 export interface ButcheryPart {
   productCode: string;
   qtyKg: number;             // kg timbangan aktual
+  priceKg?: number;          // harga/kg manual operator (Rp, opsional)
 }
 
 export interface ButcheryRecord {

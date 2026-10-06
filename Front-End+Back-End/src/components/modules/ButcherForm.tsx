@@ -21,6 +21,12 @@ export function ButcherForm() {
   const [chickenCount, setChickenCount] = useState("");
   const [notes, setNotes] = useState("");
   const [qtyByCode, setQtyByCode] = useState<Record<string, string>>({});
+  // Harga/kg per bagian — INPUT MANUAL operator (permintaan tim).
+  // Prefill DEFAULT_PRICES, gak di-reset setelah simpan (satu hari
+  // harga sama). Nilai tersimpan di parts[].priceKg (jsonb, tanpa migrasi).
+  const [priceByCode, setPriceByCode] = useState<Record<string, string>>(() =>
+    Object.fromEntries(KG_PRODUCTS.map((p) => [p.code, String(DEFAULT_PRICES[p.code] ?? 0)]))
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
 
@@ -46,6 +52,11 @@ export function ButcherForm() {
     (sum, p) => sum + (parseFloat(qtyByCode[p.code]) || 0),
     0
   );
+  const totalValue = KG_PRODUCTS.reduce(
+    (sum, p) =>
+      sum + (parseFloat(qtyByCode[p.code]) || 0) * (parseFloat(priceByCode[p.code]) || 0),
+    0
+  );
   const countNum = parseFloat(chickenCount) || 0;
 
   // ─── Validasi ────────────────────────────────────────────────────
@@ -66,6 +77,9 @@ export function ButcherForm() {
       const q = parseFloat(qtyByCode[p.code] || "0");
       if (!isNaN(q) && !isNonNegative(q))
         errs[`qty_${p.code}`] = "Tidak boleh negatif";
+      const pr = parseFloat(priceByCode[p.code] || "0");
+      if (!isNaN(pr) && !isNonNegative(pr))
+        errs[`price_${p.code}`] = "Harga tidak boleh negatif";
     }
 
     setErrors(errs);
@@ -77,7 +91,12 @@ export function ButcherForm() {
     if (!validate()) return;
 
     const parts = KG_PRODUCTS
-      .map((p) => ({ productCode: p.code, qtyKg: parseFloat(qtyByCode[p.code]) || 0 }))
+      .map((p) => ({
+        productCode: p.code,
+        qtyKg: parseFloat(qtyByCode[p.code]) || 0,
+        // Harga manual operator ikut tersimpan (jsonb — tanpa migrasi).
+        priceKg: parseFloat(priceByCode[p.code]) || 0,
+      }))
       .filter((part) => part.qtyKg > 0);
 
     setSaving(true);
@@ -91,6 +110,7 @@ export function ButcherForm() {
       });
       setChickenCount("");
       setQtyByCode({});
+      // priceByCode SENGAJA gak di-reset — harga hari ini sama untuk batch berikutnya.
       setNotes("");
       setErrors({});
     } catch {
@@ -172,19 +192,21 @@ export function ButcherForm() {
         <div className="space-y-2">
           <div className="grid grid-cols-12 gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <div className="col-span-2">Kode</div>
-            <div className="col-span-6">Produk</div>
+            <div className="col-span-4">Produk</div>
             <div className="col-span-2">Qty (kg)</div>
-            <div className="col-span-2 text-right">Harga/kg</div>
+            <div className="col-span-2">Harga/kg</div>
+            <div className="col-span-2 text-right">Nilai</div>
           </div>
           {KG_PRODUCTS.map((p) => {
             const q = parseFloat(qtyByCode[p.code] || "0") || 0;
+            const price = parseFloat(priceByCode[p.code]) || 0;
             return (
               <div
                 key={p.code}
                 className="grid grid-cols-12 items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
               >
                 <div className="col-span-2 font-mono text-sm font-medium">{p.code}</div>
-                <div className="col-span-6 text-sm text-gray-700 dark:text-gray-300">{p.name}</div>
+                <div className="col-span-4 text-sm text-gray-700 dark:text-gray-300">{p.name}</div>
                 <div className="col-span-2">
                   <Input
                     type="number"
@@ -197,8 +219,21 @@ export function ButcherForm() {
                     className="px-2 py-1 text-sm"
                   />
                 </div>
+                <div className="col-span-2">
+                  {/* Harga/kg manual — operator bebas ganti tiap hari. */}
+                  <Input
+                    type="number"
+                    min={0}
+                    step="any"
+                    placeholder="Harga"
+                    value={priceByCode[p.code] ?? ""}
+                    onChange={(e) => setPriceByCode((m) => ({ ...m, [p.code]: e.target.value }))}
+                    error={errors[`price_${p.code}`]}
+                    className="px-2 py-1 text-sm"
+                  />
+                </div>
                 <div className="col-span-2 text-right font-mono text-sm text-gray-500 dark:text-gray-400">
-                  {q > 0 ? `Rp ${Math.round(q * (DEFAULT_PRICES[p.code] || 0)).toLocaleString("id-ID")}` : ""}
+                  {q > 0 && price > 0 ? `Rp ${Math.round(q * price).toLocaleString("id-ID")}` : ""}
                 </div>
               </div>
             );
@@ -213,6 +248,11 @@ export function ButcherForm() {
             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {totalKg.toFixed(1)} kg
             </span>
+            {totalValue > 0 && (
+              <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                · Nilai Rp {Math.round(totalValue).toLocaleString("id-ID")}
+              </span>
+            )}
           </div>
           <div className="flex gap-2">
             <Button type="submit" loading={saving}>

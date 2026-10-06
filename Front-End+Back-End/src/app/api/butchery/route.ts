@@ -38,7 +38,10 @@ export const POST = route(async (req) => {
     .map((p: any) => ({
       productCode: String(field(p, "productCode", "product_code") ?? ""),
       qtyKg: num(p, "qtyKg", "qty_kg"),
+      // Harga/kg manual operator — jsonb, tanpa migrasi. 0 = tidak diisi.
+      priceKg: num(p, "priceKg", "price_kg"),
     }))
+    .map((p: any) => ({ ...p, priceKg: Math.max(0, Math.round(p.priceKg * 100) / 100) }))
     .filter((p: any) => p.qtyKg > 0 && p.productCode);
   if (clean.length === 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { parts: "Minimal 1 bagian qty>0" }, 400);
   for (const p of clean) {
