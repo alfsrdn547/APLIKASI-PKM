@@ -8,7 +8,6 @@ export interface IncomingRow {
   date: string;
   chickenIn: number;
   chickenDead: number;
-  chickenBroken: number;
   nopol: string;
   tonase: number;
   hargaPerKg: number;
@@ -54,7 +53,8 @@ const INCOMING_HEADERS = [
   { id: "tanggal", field: "date" as const },
   { id: "ayam_masuk", field: "chickenIn" as const },
   { id: "ayam_mati", field: "chickenDead" as const },
-  { id: "ayam_cacat", field: "chickenBroken" as const },
+  // ayam_cacat DIHAPUS — header lama di file Excel user diabaikan diam-diam
+// (buildHeaderMap cuma match header yang ada di spec).
   { id: "nopol", field: "nopol" as const },
   { id: "tonase_kg", field: "tonase" as const },
   { id: "harga_per_kg", field: "hargaPerKg" as const },
@@ -107,7 +107,6 @@ function buildIncomingSheet() {
     { header: "tanggal" },
     { header: "ayam_masuk" },
     { header: "ayam_mati" },
-    { header: "ayam_cacat" },
     { header: "nopol" },
     { header: "tonase_kg" },
     { header: "harga_per_kg" },
@@ -169,11 +168,11 @@ function buildGuideSheet(module: ImportModule): XLSX.WorkSheet {
   switch (module) {
     case "penerimaan":
       rows.push(
-        ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati (afkir) · ayam_cacat · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
+        ["3. Kolom isi: tanggal · ayam_masuk (ekor) · ayam_mati (afkir) · nopol · tonase_kg · harga_per_kg · kasbon · catatan."],
         ["   'nopol' & 'tonase_kg' WAJIB diisi. 'harga_per_kg' = harga per EKOR (bukan per kg). Total = ayam_masuk × harga_per_kg."],
         ["   Rata-rata berat (kg/ekor) dihitung otomatis dari tonase_kg ÷ ayam_masuk — tidak perlu kolom di file."],
         ["4. Angka kosong dianggap 0, kecuali ayam_masuk wajib > 0."],
-        ["5. Contoh baris: 2026-09-15 | 100 | 2 | 1 | B 1234 CD | 180 | 38000 | 0 | Catatan opsional"],
+        ["5. Contoh baris: 2026-09-15 | 100 | 2 | B 1234 CD | 180 | 38000 | 0 | Catatan opsional"],
         ["   (100 ekor, 180 kg → rata-rata 1,8 kg/ekor)"],
         ["6. Satu baris = satu penerimaan."]
       );
@@ -333,7 +332,6 @@ export function parseXlsx(file: File, module: ImportModule): Promise<ParsedRow[]
               date: excelDateToISO(r.date),
               chickenIn: toNum(r.chickenIn),
               chickenDead: toNum(r.chickenDead),
-              chickenBroken: toNum(r.chickenBroken),
               nopol: String(r.nopol ?? ""),
               tonase: toNum(r.tonase),
               hargaPerKg: toNum(r.hargaPerKg),

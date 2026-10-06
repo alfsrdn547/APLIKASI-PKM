@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { SalesOrder } from "@/types";
 import { SalesForm } from "@/components/modules/SalesForm";
 import { SalesHistory } from "@/components/modules/SalesHistory";
+import { CustomerBillings } from "@/components/modules/CustomerBillings";
 import { InvoicePrint } from "@/components/modules/InvoicePrint";
 
 export default function PenjualanPage() {
@@ -34,6 +35,8 @@ export default function PenjualanPage() {
       <SalesForm />
 
       <SalesHistory onRowClick={handleRowClick} />
+
+      <CustomerBillings />
 
       {printOrder && <InvoicePrint order={printOrder} onClose={() => setPrintOrder(null)} />}
     </div>

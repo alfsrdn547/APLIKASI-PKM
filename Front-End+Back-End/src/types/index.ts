@@ -78,7 +78,8 @@ export type ExpenseCategory =
   | "harian"
   | "admin"
   | "konsumsi"
-  | "supir";
+  | "supir"
+  | "plastik";
 
 export type ExpenseDirection = "keluar" | "masuk";
 

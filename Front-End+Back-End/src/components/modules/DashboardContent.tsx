@@ -9,31 +9,62 @@ import { ExportModal } from "@/components/modules/ExportModal";
 import { Button } from "@/components/ui/Button";
 import { formatRp, formatShortDate } from "@/lib/utils";
 
-// ─── Simple inline SVG bar chart (no dep) ───────────────────────────
+// ─── Simple inline bar chart (no dep) + tooltip custom ──────────────
 function MiniBarChart({
   labels,
   values,
+  title,
+  barClass,
 }: {
   labels: string[];
   values: number[];
+  title: string;
+  barClass: string;
 }) {
+  const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(...values, 1);
+
   return (
-    <div className="flex h-40 items-end gap-2">
-      {values.map((v, i) => (
-        <div key={i} className="flex-1">
-          <div className="flex h-36 items-end">
-            <div
-              className="w-full rounded-t bg-blue-500/80 transition-all hover:bg-blue-600"
-              style={{ height: `${(v / max) * 100}%` }}
-              title={`${labels[i]} — ${formatRp(v)}`}
-            />
+    <div>
+      <div className="mb-2 flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+        <span className={`inline-block h-2.5 w-2.5 rounded-sm ${barClass}`} />
+        {title}
+      </div>
+      <div className="flex h-40 items-end gap-2">
+        {values.map((v, i) => (
+          <div
+            key={i}
+            className="relative flex-1"
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(null)}
+            onFocus={() => setHover(i)}
+            onBlur={() => setHover(null)}
+            tabIndex={0}
+            role="img"
+            aria-label={`${labels[i]} — ${formatRp(v)}`}
+          >
+            <div className="flex h-36 items-end">
+              <div
+                className={`w-full rounded-t transition-all ${barClass} ${
+                  hover === null || hover === i ? "opacity-90" : "opacity-40"
+                }`}
+                style={{ height: `${(v / max) * 100}%` }}
+              />
+            </div>
+            {hover === i && (
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max -translate-x-1/2 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700">
+                <p className="font-semibold">{labels[i]}</p>
+                <p className="mt-0.5 tabular-nums">
+                  {title}: {formatRp(v)}
+                </p>
+              </div>
+            )}
+            <p className="mt-1 truncate text-center text-[10px] text-gray-400 dark:text-gray-500">
+              {labels[i]}
+            </p>
           </div>
-          <p className="mt-1 truncate text-center text-[10px] text-gray-400 dark:text-gray-500">
-            {labels[i]}
-          </p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -158,10 +189,14 @@ export function DashboardContent() {
       >
         <div className="grid gap-6 md:grid-cols-2">
           <MiniBarChart
+            title="Omset"
+            barClass="bg-blue-500/80 hover:bg-blue-600"
             labels={summaries.slice(-7).map((s) => formatShortDate(s.date).slice(0, 6))}
             values={summaries.slice(-7).map((s) => s.totalRevenue)}
           />
           <MiniBarChart
+            title="Beban"
+            barClass="bg-red-500/80 hover:bg-red-600"
             labels={summaries.slice(-7).map((s) => formatShortDate(s.date).slice(0, 6))}
             values={summaries.slice(-7).map((s) => s.totalExpenses)}
           />

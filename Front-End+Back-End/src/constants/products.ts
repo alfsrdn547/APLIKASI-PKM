@@ -1,8 +1,9 @@
 import type { Product } from "@/types";
 
-// ─── Kode Barang RPH (17, sesuai PRD Modul 2) ────────────────────────
+// ─── Kode Barang RPH (PRD Modul 2) ───────────────────────────────────
 // Ayam Utuh: PC, KRKS. Daging & Parting: BLD, BLD-K, BLP, BLP-K,
-// PAHA-P/U/A, SAYAP-B/R. Sampingan/Jeroan: CKR, KPL, KULIT, USUS, ATI, TULANG.
+// PAHA-P/U/A, SAYAP-B/R. Sampingan/Jeroan: CKR, KRK, KPL, KULIT, USUS,
+// ATI, TULANG (legacy) + TULANG-L / TULANG-I (hasil trimming, 2 jenis).
 export const PRODUCTS: Product[] = [
   { code: "PC",     name: "Ayam Utuh Parting/Potong", unit: "kg", category: "ayam_utuh" },
   { code: "KRKS",   name: "Karkas Utuh",              unit: "kg", category: "ayam_utuh" },
@@ -15,12 +16,17 @@ export const PRODUCTS: Product[] = [
   { code: "PAHA-A", name: "Paha (A)",                 unit: "kg", category: "daging" },
   { code: "SAYAP-B", name: "Sayap (B)",               unit: "kg", category: "daging" },
   { code: "SAYAP-R", name: "Sayap (R)",               unit: "kg", category: "daging" },
-  { code: "CKR",    name: "Cakar",                    unit: "kg", category: "sampingan" },
+  { code: "CKR",    name: "Ceker",                    unit: "kg", category: "sampingan" },
+  { code: "KRK",    name: "Kerongkongan",             unit: "kg", category: "sampingan" },
   { code: "KPL",    name: "Kepala",                   unit: "ekor", category: "sampingan" },
   { code: "KULIT",  name: "Kulit",                    unit: "kg", category: "sampingan" },
   { code: "USUS",   name: "Usus",                     unit: "kg", category: "sampingan" },
   { code: "ATI",    name: "Ati",                      unit: "kg", category: "sampingan" },
-  { code: "TULANG", name: "Tulang",                   unit: "kg", category: "sampingan" },
+  // TULANG (tanpa sufiks) = kode lama, disimpan supaya data penjualan lama
+  // tetap resolve. Dua jenis tulang hasil trimming = TULANG-L & TULANG-I.
+  { code: "TULANG",   name: "Tulang",     unit: "kg", category: "sampingan" },
+  { code: "TULANG-L", name: "Tulang (L)", unit: "kg", category: "sampingan" },
+  { code: "TULANG-I", name: "Tulang (I)", unit: "kg", category: "sampingan" },
 ];
 
 export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(
@@ -40,6 +46,7 @@ export const EXPENSE_CATEGORIES = [
   { value: "admin",    label: "Admin" },
   { value: "konsumsi", label: "Konsumsi" },
   { value: "supir",    label: "Supir" },
+  { value: "plastik",  label: "Plastik" },
 ] as const;
 
 // ─── Arah arus & sumber uang pengeluaran (PRD Modul 4) ───────────────
@@ -87,11 +94,15 @@ export const DEFAULT_PRICES: Record<string, number> = {
   "SAYAP-B": 25000,
   "SAYAP-R": 24000,
   CKR:    20000,
+  KRK:    22000,
   KPL:    10000,
   KULIT:  15000,
   USUS:   12000,
   ATI:    25000,
   TULANG: 8000,
+  // Tiga item tulang: kode lama (data lama) + 2 jenis hasil trimming.
+  "TULANG-L": 8000,
+  "TULANG-I": 8000,
 };
 
 // ─── Bobot & distribusi per karkas (utk prefill form pemotongan) ─────
@@ -110,9 +121,14 @@ export const BUTCHERY_DISTRIBUTION: Record<string, number> = {
   "SAYAP-B": 0.04,
   "SAYAP-R": 0.04,
   CKR:    0.04,
+  KRK:    0.03,
   KPL:    1.00,
   KULIT:  0.06,
   USUS:   0.03,
   ATI:    0.02,
   TULANG: 0.05,
+  // Dua jenis tulang hasil trimming. TULANG (tanpa sufiks) tetap ada
+  // buat record lama; distributorsnya dibagi 0,03 + 0,02 (total 0,05).
+  "TULANG-L": 0.03,
+  "TULANG-I": 0.02,
 };

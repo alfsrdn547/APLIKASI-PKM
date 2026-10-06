@@ -12,7 +12,7 @@ interface FormState {
   date: string;
   chickenIn: string;
   chickenDead: string;
-  chickenBroken: string;
+  // chickenBroken DIHAPUS dari form (kolom DB dibiarkan buat data lama).
   nopol: string;
   tonase: string;
   hargaPerKg: string;
@@ -24,7 +24,6 @@ const INITIAL: FormState = {
   date: "",
   chickenIn: "",
   chickenDead: "",
-  chickenBroken: "",
   nopol: "",
   tonase: "",
   hargaPerKg: "",
@@ -66,11 +65,6 @@ export function IncomingForm() {
     else if (!isNonNegative(deadNum))
       errs.chickenDead = "Tidak boleh negatif";
 
-    const brokenNum = parseFloat(form.chickenBroken || "0");
-    if (isNaN(brokenNum)) errs.chickenBroken = "Harus berupa angka";
-    else if (!isNonNegative(brokenNum))
-      errs.chickenBroken = "Tidak boleh negatif";
-
     // Nopol & tonase wajib — kolom "opsional" dihapus sesuai permintaan tim.
     if (!form.nopol.trim()) errs.nopol = "No. polisi wajib diisi";
     const tonaseNum = parseFloat(form.tonase);
@@ -96,7 +90,8 @@ export function IncomingForm() {
         date: form.date,
         chickenIn: parseFloat(form.chickenIn),
         chickenDead: parseFloat(form.chickenDead || "0"),
-        chickenBroken: parseFloat(form.chickenBroken || "0"),
+        // chickenBroken: kolom DB dibiarkan (data lama), form gak lagi menanyakan.
+        chickenBroken: 0,
         nopol: form.nopol.trim(),
         tonase: parseFloat(form.tonase || "0"),
         hargaPerKg: parseFloat(form.hargaPerKg || "0"),
@@ -113,7 +108,6 @@ export function IncomingForm() {
 
   const inNum = parseFloat(form.chickenIn) || 0;
   const deadNum = parseFloat(form.chickenDead) || 0;
-  const brokenNum = parseFloat(form.chickenBroken) || 0;
   const tonaseNum = parseFloat(form.tonase) || 0;
   // Rata-rata berat = tonase ÷ ayam masuk (hasil bagi, bukan input user).
   const avgWeight = inNum > 0 && tonaseNum > 0 ? tonaseNum / inNum : 0;
@@ -145,17 +139,6 @@ export function IncomingForm() {
           onChange={(e) => set("chickenIn", e.target.value)}
           error={errors.chickenIn}
           hint="Jumlah total per surat jalan"
-        />
-
-        <Input
-          type="number"
-          min={0}
-          step="any"
-          label="Cacat Ringan (ekor)"
-          placeholder="Contoh: 5"
-          value={form.chickenBroken}
-          onChange={(e) => set("chickenBroken", e.target.value)}
-          error={errors.chickenBroken}
         />
 
         <Input

@@ -82,7 +82,7 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
               date: r.date,
               chickenIn: r.chickenIn,
               chickenDead: r.chickenDead,
-              chickenBroken: r.chickenBroken,
+              chickenBroken: 0,
               nopol: r.nopol,
               tonase: r.tonase,
               hargaPerKg: r.hargaPerKg,
