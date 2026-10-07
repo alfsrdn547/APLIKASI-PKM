@@ -195,7 +195,7 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
           {/* Module selector */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Modul</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {MODULE_OPTIONS.map((m) => (
                 <button
                   key={m.value}

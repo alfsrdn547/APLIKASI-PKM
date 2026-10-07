@@ -109,6 +109,20 @@ export const POST = route(async (req) => {
   const { data: full } = await getAdminClient()
     .from("sales").select("*,sales_items(*)").eq("id", sale.id).single();
 
-  await writeAudit("POST", "/api/sales", "sales", sale.id, "create", null, full, 201, req);
-  return ok(full, 201);
+  // Impor Excel kirim payStatus "lunas" tapi paidAmount 0 (total belum
+  // diketahui saat client kirim). Sekarang total sudah ada dari trigger —
+  // samakan paid = total, biar "Tagihan per Customer" gak ngitung utang fiktif.
+  let result = full;
+  if (full && body.payStatus === "lunas" && !(body.paidAmount > 0) && Number(full.total_amount) > 0) {
+    const { data: fixed } = await getAdminClient()
+      .from("sales")
+      .update({ paid_amount: full.total_amount })
+      .eq("id", sale.id)
+      .select("*,sales_items(*)")
+      .maybeSingle();
+    if (fixed) result = fixed;
+  }
+
+  await writeAudit("POST", "/api/sales", "sales", sale.id, "create", null, result, 201, req);
+  return ok(result, 201);
 });

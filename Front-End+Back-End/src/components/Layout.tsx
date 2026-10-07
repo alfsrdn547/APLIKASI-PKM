@@ -27,6 +27,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const error = useRPHStore((s) => s.error);
   const fetchedOnce = useRef(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // drawer menu (HP)
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -58,6 +59,11 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [fetchAll]);
 
+  // Tutup drawer tiap pindah halaman (fallback kalau Link kelewat).
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -75,18 +81,32 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-300">
       {/* Topbar */}
       <header className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-2.5">
+        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2.5">
+            {/* Hamburger — sidebar (drawer) cuma muncul lg+; HP pakai ini. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="rounded-lg border border-gray-200 p-2 text-gray-600 transition-colors hover:bg-gray-50 lg:hidden dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={menuOpen}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {menuOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
+              </svg>
+            </button>
             {/* Logo PT PANGAN MAKMUR NUSANTARA. PNG-nya background putih →
                 di mode dark dikasih bg-white + padding biar gak "lubang". */}
             <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1 ring-1 ring-gray-200 dark:ring-gray-700">
               <img src="/logo.png" alt="Logo PT PANGAN MAKMUR NUSANTARA" className="h-full w-full object-contain" />
             </div>
-            <div>
-              <h1 className="text-base font-bold leading-tight">
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-bold leading-tight">
                 RPH Sistem Pencatatan
               </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="hidden truncate text-xs text-gray-500 sm:block dark:text-gray-400">
                 Rumah Potong Harian — Digitalisasi Data Harian
               </p>
             </div>
@@ -98,7 +118,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
               >
                 <span>⬆️</span>
-                Import Data
+                <span className="hidden sm:inline">Import Data</span>
               </button>
             )}
             <span className="hidden rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 sm:inline dark:bg-green-900 dark:text-green-300">
@@ -108,7 +128,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                 {user?.fullName?.charAt(0) ?? "A"}
               </div>
-              <div className="text-right leading-tight">
+              <div className="hidden text-right leading-tight md:block">
                 <span className="block text-sm text-gray-700 dark:text-gray-300">
                   {user?.fullName ?? "—"}
                 </span>
@@ -129,8 +149,21 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-3 lg:flex dark:border-gray-800 dark:bg-gray-900">
+        {/* Backdrop drawer (HP) — klik area gelap = tutup menu */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden
+          />
+        )}
+        {/* Sidebar: static di lg+; drawer slide-in di layar kecil */}
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex w-56 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-3 pt-20 transition-transform lg:sticky lg:inset-y-auto lg:top-16 lg:z-0 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:pt-3 dark:border-gray-800 dark:bg-gray-900",
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
           <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
             Menu
           </p>
@@ -143,6 +176,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMenuOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive

@@ -52,7 +52,10 @@ export async function checkSaleStock(
 ): Promise<Record<string, string> | null> {
   const [{ data: cuts }, { data: sales }] = await Promise.all([
     supabase.from("butchery").select("*").order("date", { ascending: true }),
-    supabase.from("sales").select("*").order("date", { ascending: true }),
+    // WAJIB embed sales_items — tanpa ini `s.items` selalu undefined dan
+    // stok terjual dihitung 0 → guard server gak pernah nolak oversell
+    // (jalan lewat Impor Excel / curl tanpa cek client).
+    supabase.from("sales").select("*,sales_items(*)").order("date", { ascending: true }),
   ]);
 
   const add = (m: Agg, k: string, v: number) => { m[k] = (m[k] || 0) + v; };
@@ -66,7 +69,8 @@ export async function checkSaleStock(
   for (const s of sales ?? []) {
     const b = s.date < orderDate ? prevSold : s.date === orderDate ? daySold : null;
     if (!b) continue;
-    for (const it of s.items ?? []) add(b, it.productCode, it.quantity);
+    // `items` = fallback jsonb legacy sebelum normalisasi ke sales_items.
+    for (const it of s.sales_items ?? s.items ?? []) add(b, it.productCode, it.quantity);
   }
 
   const errs: Record<string, string> = {};

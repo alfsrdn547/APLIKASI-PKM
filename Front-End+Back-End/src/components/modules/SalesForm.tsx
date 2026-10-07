@@ -174,9 +174,9 @@ export function SalesForm() {
           </p>
         )}
 
-        {/* Item list */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-12 gap-3 rounded-lg bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+        {/* Item list — overflow-x: grid 12 kolom discroll horizontal di HP */}
+        <div className="space-y-3 overflow-x-auto">
+          <div className="grid min-w-[540px] grid-cols-12 gap-3 rounded-lg bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <div className="col-span-4">Kode Barang</div>
             <div className="col-span-2">Qty</div>
             <div className="col-span-3">Harga / unit</div>
@@ -191,7 +191,7 @@ export function SalesForm() {
             return (
               <div
                 key={it.key}
-                className="grid grid-cols-12 items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+                className="grid min-w-[540px] grid-cols-12 items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
               >
                 <div className="col-span-4">
                   <Select

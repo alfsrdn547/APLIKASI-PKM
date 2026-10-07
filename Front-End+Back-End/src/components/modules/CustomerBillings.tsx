@@ -92,10 +92,10 @@ export function CustomerBillings() {
 
       {/* Header */}
       <div className="grid grid-cols-12 gap-2 border-b border-gray-200 px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:text-gray-400">
-        <div className="col-span-5">Pelanggan</div>
-        <div className="col-span-3 text-right">Total Tagihan</div>
-        <div className="col-span-2 text-right">Dibayar</div>
-        <div className="col-span-2 text-right">Sisa</div>
+        <div className="col-span-6 sm:col-span-5">Pelanggan</div>
+        <div className="col-span-3 text-right sm:col-span-3">Total Tagihan</div>
+        <div className="hidden text-right sm:col-span-2 sm:block">Dibayar</div>
+        <div className="col-span-3 text-right sm:col-span-2">Sisa</div>
       </div>
 
       {groups.length === 0 ? (
@@ -113,7 +113,7 @@ export function CustomerBillings() {
                   onClick={() => setOpenKey(open ? null : g.key)}
                   className="grid w-full grid-cols-12 items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <div className="col-span-5 min-w-0">
+                  <div className="col-span-6 min-w-0 sm:col-span-5">
                     <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                       {g.name}
                       <span className="ml-1.5 text-xs font-normal text-gray-400">
@@ -127,11 +127,11 @@ export function CustomerBillings() {
                   <div className="col-span-3 text-right text-sm font-mono text-gray-700 dark:text-gray-300">
                     <Money value={g.total} />
                   </div>
-                  <div className="col-span-2 text-right text-sm font-mono text-gray-500 dark:text-gray-400">
+                  <div className="hidden text-right text-sm font-mono text-gray-500 sm:col-span-2 sm:block dark:text-gray-400">
                     <Money value={g.paid} />
                   </div>
                   <div
-                    className={`col-span-2 text-right text-sm font-mono font-semibold ${
+                    className={`col-span-3 text-right text-sm font-mono font-semibold sm:col-span-2 ${
                       g.sisa > 0
                         ? "text-amber-600 dark:text-amber-400"
                         : "text-green-600 dark:text-green-400"

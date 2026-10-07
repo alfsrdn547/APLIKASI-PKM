@@ -188,9 +188,9 @@ export function ButcherForm() {
           </Button>
         </div>
 
-        {/* Breakdown grid */}
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+        {/* Breakdown grid — overflow-x: 5 kolom input discroll di HP */}
+        <div className="space-y-2 overflow-x-auto">
+          <div className="grid min-w-[560px] grid-cols-12 gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <div className="col-span-2">Kode</div>
             <div className="col-span-4">Produk</div>
             <div className="col-span-2">Qty (kg)</div>
@@ -203,7 +203,7 @@ export function ButcherForm() {
             return (
               <div
                 key={p.code}
-                className="grid grid-cols-12 items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
+                className="grid min-w-[560px] grid-cols-12 items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
               >
                 <div className="col-span-2 font-mono text-sm font-medium">{p.code}</div>
                 <div className="col-span-4 text-sm text-gray-700 dark:text-gray-300">{p.name}</div>

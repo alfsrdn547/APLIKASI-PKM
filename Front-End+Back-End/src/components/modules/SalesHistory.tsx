@@ -190,13 +190,13 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
       title="Riwayat Penjualan"
       subtitle={`${filtered.length} transaksi`}
       action={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             type="search"
             placeholder="Cari pemesan / no. order…"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm sm:flex-none dark:border-gray-600 dark:bg-gray-900"
           />
           <select
             value={statusFilter}

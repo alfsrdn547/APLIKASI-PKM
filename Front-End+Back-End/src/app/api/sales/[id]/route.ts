@@ -42,7 +42,10 @@ export const PATCH = route(async (req: Request, ctx: Ctx) => {
   }
   if (b?.paidAmount !== undefined) {
     const paid = Number(b.paidAmount);
-    if (!isFinite(paid) || paid < 0) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { paidAmount: "Harus angka ≥ 0" }, 400);
+    const total = Number(old.total_amount);
+    // Cap di total — kelebihan bayar bikin "sisa" (Tagihan per Customer) minus.
+    if (!isFinite(paid) || paid < 0 || paid > total)
+      throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { paidAmount: `Harus antara 0 dan ${total}` }, 400);
     patch.paid_amount = paid;
   }
 

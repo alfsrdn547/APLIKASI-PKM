@@ -206,7 +206,7 @@ export function IncomingForm() {
           <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
             Kalkulasi Stok Siap Produksi (real-time)
           </p>
-          <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
             <div>
               <p className="text-xs text-blue-600 dark:text-blue-400">Ayam Masuk</p>
               <p className="text-lg font-bold text-blue-900 dark:text-blue-200">
