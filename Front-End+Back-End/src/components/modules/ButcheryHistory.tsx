@@ -5,11 +5,14 @@ import { useRPHStore } from "@/stores/useRPHStore";
 import { Table } from "@/components/ui/Table";
 import { Card } from "@/components/ui/Card";
 import { formatShortDate } from "@/lib/utils";
+import { useUser } from "@/lib/useUser";
 
 export function ButcheryHistory() {
   const butchery = useRPHStore((s) => s.butchery);
   const incoming = useRPHStore((s) => s.incoming);
   const removeButchery = useRPHStore((s) => s.removeButchery);
+  const user = useUser();
+  const canWrite = user?.role === "operator";
   const [selectedDate, setSelectedDate] = useState("");
   const [submitError, setSubmitError] = useState("");
 
@@ -26,6 +29,8 @@ export function ButcheryHistory() {
   };
 
   const handleRemove = async (id: string) => {
+    // Konfirmasi wajib — sekali ketuk (HP) = data hilang permanen.
+    if (!confirm("Hapus catatan pemotongan ini? Stok papan tulis ikut berkurang. Tidak bisa dibatalkan.")) return;
     try {
       setSubmitError("");
       await removeButchery(id);
@@ -125,7 +130,7 @@ export function ButcheryHistory() {
         </p>
       )}
       <Table
-        columns={columns}
+        columns={canWrite ? columns : columns.filter((c) => c.key !== "actions")}
         data={filtered}
         emptyMessage="Belum ada pemotongan"
       />

@@ -18,7 +18,12 @@ export function formatRp(value: number): string {
 
 // ─── Date helpers ────────────────────────────────────────────────────
 export function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  // Tanggal LOKAL (bukan toISOString = UTC). UTC bikin "hari ini" mundur
+  // satu hari di WIB 00.00–07.00 — jam kerja RPH — form default ke
+  // kemarin & server nolak tanggal hari ini sebagai "masa depan".
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 export function formatDisplayDate(iso: string): string {

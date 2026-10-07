@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Table } from "@/components/ui/Table";
 import { OrderStatusBadge, PayStatusBadge, PickupStatusBadge, Money } from "@/components/ui/custom-badges";
 import { formatShortDate } from "@/lib/utils";
+import { useUser } from "@/lib/useUser";
 
 type SortField = "date" | "totalAmount" | "customerName";
 type SortDir = "asc" | "desc";
@@ -20,6 +21,8 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
   const sales = useRPHStore((s) => s.sales);
   const updateOrderStatus = useRPHStore((s) => s.updateOrderStatus);
   const updateOrderPayment = useRPHStore((s) => s.updateOrderPayment);
+  const user = useUser();
+  const canWrite = user?.role === "operator";
 
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -129,13 +132,15 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <PayStatusBadge status={o.payStatus} />
-              <button
-                onClick={() => togglePay(o)}
-                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                title={o.payStatus === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
-              >
-                {o.payStatus === "lunas" ? "↺" : "✓"}
-              </button>
+              {canWrite && (
+                <button
+                  onClick={() => togglePay(o)}
+                  className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                  title={o.payStatus === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
+                >
+                  {o.payStatus === "lunas" ? "↺" : "✓"}
+                </button>
+              )}
             </div>
             {o.payStatus !== "lunas" && (
               <span className="text-[11px] text-amber-600 dark:text-amber-400">
@@ -152,13 +157,15 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
       render: (o: SalesOrder) => (
         <div className="flex items-center gap-2">
           <PickupStatusBadge status={o.pickupStatus} />
-          <button
-            onClick={() => togglePickup(o)}
-            className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-            title={o.pickupStatus === "sudah_diambil" ? "Tandai belum diambil" : "Tandai sudah diambil"}
-          >
-            {o.pickupStatus === "sudah_diambil" ? "↺" : "✓"}
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => togglePickup(o)}
+              className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              title={o.pickupStatus === "sudah_diambil" ? "Tandai belum diambil" : "Tandai sudah diambil"}
+            >
+              {o.pickupStatus === "sudah_diambil" ? "↺" : "✓"}
+            </button>
+          )}
         </div>
       ),
     },
@@ -168,18 +175,20 @@ export function SalesHistory({ onRowClick }: SalesHistoryProps) {
       render: (o: SalesOrder) => (
         <div className="flex items-center gap-2">
           <OrderStatusBadge status={o.status} />
-          <div className="flex gap-1">
-            {ORDER_STATUSES.filter((s) => s.value !== o.status).map((s) => (
-              <button
-                key={s.value}
-                onClick={() => handleStatusClick(o, s.value as OrderStatus)}
-                className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                title={`Ubah ke ${s.label}`}
-              >
-                {s.label === "Proses" ? "▶" : s.value}
-              </button>
-            ))}
-          </div>
+          {canWrite && (
+            <div className="flex gap-1">
+              {ORDER_STATUSES.filter((s) => s.value !== o.status).map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => handleStatusClick(o, s.value as OrderStatus)}
+                  className="rounded px-1.5 py-0.5 text-[11px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                  title={`Ubah ke ${s.label}`}
+                >
+                  {s.label === "Proses" ? "▶" : s.value}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ),
     },

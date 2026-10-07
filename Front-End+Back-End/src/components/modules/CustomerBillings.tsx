@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Money, PayStatusBadge } from "@/components/ui/custom-badges";
 import { formatShortDate } from "@/lib/utils";
+import { useUser } from "@/lib/useUser";
 
 type CustomerGroup = {
   key: string;
@@ -27,6 +28,8 @@ type CustomerGroup = {
 export function CustomerBillings() {
   const sales = useRPHStore((s) => s.sales);
   const updateOrderPayment = useRPHStore((s) => s.updateOrderPayment);
+  const user = useUser();
+  const canWrite = user?.role === "operator";
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
@@ -168,30 +171,34 @@ export function CustomerBillings() {
                                 <span className="text-[11px] text-amber-600 dark:text-amber-400">
                                   sisa <Money value={sisa} />
                                 </span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step="any"
-                                  placeholder="Bayar…"
-                                  value={amounts[o.id] ?? ""}
-                                  onChange={(e) =>
-                                    setAmounts((m) => ({ ...m, [o.id]: e.target.value }))
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      void pay(o);
-                                    }
-                                  }}
-                                  className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-900"
-                                />
-                                <Button
-                                  size="sm"
-                                  disabled={busyId === o.id}
-                                  onClick={() => void pay(o)}
-                                >
-                                  {busyId === o.id ? "…" : "Bayar"}
-                                </Button>
+                                {canWrite && (
+                                  <>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      step="any"
+                                      placeholder="Bayar…"
+                                      value={amounts[o.id] ?? ""}
+                                      onChange={(e) =>
+                                        setAmounts((m) => ({ ...m, [o.id]: e.target.value }))
+                                      }
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.preventDefault();
+                                          void pay(o);
+                                        }
+                                      }}
+                                      className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-900"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      disabled={busyId === o.id}
+                                      onClick={() => void pay(o)}
+                                    >
+                                      {busyId === o.id ? "…" : "Bayar"}
+                                    </Button>
+                                  </>
+                                )}
                               </>
                             ) : (
                               <span className="text-xs font-medium text-green-600 dark:text-green-400">

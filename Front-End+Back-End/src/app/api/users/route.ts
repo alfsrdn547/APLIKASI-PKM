@@ -78,7 +78,16 @@ export const PATCH = route(async (req) => {
   if (b.password !== undefined) {
     if (b.password.length < 8)
       throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { password: "Minimal 8 karakter" }, 400);
-    const { error } = await db.from("users").update({ password_hash: hashPassword(b.password) }).eq("id", b.id);
+    const hash = hashPassword(b.password);
+    // Sekalian cabut sesi lama (token_valid_after). Fallback kalau kolom
+    // belum dimigrasi (SESSION_REVOKE.sql) → password tetap ke-update.
+    let { error } = await db
+      .from("users")
+      .update({ password_hash: hash, token_valid_after: new Date().toISOString() })
+      .eq("id", b.id);
+    if (error) {
+      ({ error } = await db.from("users").update({ password_hash: hash }).eq("id", b.id));
+    }
     if (error) throw new ApiError("DB_ERROR", error.message, {}, 500);
     await writeAudit("PATCH", `/api/users/${b.id}`, "users", b.id, "update",
       { password: "***" }, { password: "***" }, 200, req);

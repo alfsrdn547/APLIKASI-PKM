@@ -92,12 +92,31 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
     // `.maybeSingle()` bukan `.single()`: 0 baris (user dihapus) → null,
     // bukan error. Kolom `phone` DIHAPUS — gak ada di tabel `users`;
     // select kolom yang gak ada bikin query error → sesi dianggap null.
-    const { data } = await getAdminClient()
+    const db = getAdminClient();
+    const cols = "id,email,full_name,role,active";
+    let { data, error } = await db
       .from("users")
-      .select("id,email,full_name,role,active")
+      .select(`${cols},token_valid_after`)
       .eq("id", payload.sub)
       .maybeSingle();
+    if (error) {
+      // SESSION_REVOKE.sql belum jalan → kolom gak ada. Fallback tanpa
+      // kolom biar app tetap jalan; revocation baru aktif setelah migrasi.
+      ({ data, error } = await db
+        .from("users")
+        .select(cols)
+        .eq("id", payload.sub)
+        .maybeSingle());
+    }
     if (!data || !data.active) return null;
+
+    // Token yang dibuat SEBELUM logout/reset password = mati.
+    const validAfter = data.token_valid_after
+      ? Math.floor(new Date(data.token_valid_after).getTime() / 1000)
+      : 0;
+    const iat = (payload as { iat?: number }).iat;
+    if (validAfter > 0 && typeof iat === "number" && iat < validAfter) return null;
+
     return {
       id: data.id,
       email: data.email,

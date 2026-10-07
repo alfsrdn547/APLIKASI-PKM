@@ -10,6 +10,36 @@ function sessionCookie(token: string): string {
   }`;
 }
 
+// ─── Rate limit login (per email, in-memory per instance) ──────────────
+// ponytail: batas per-instance (Vercel bisa jalan multi-instance → lewat
+// kalau diserang parallel). Cukup buat rem-brake brute force harian.
+// Kalau perlu kuat: tabel DB atau Upstash (rate-limit per 15 menit, 10x).
+const WINDOW_MS = 15 * 60_000;
+const MAX_FAILS = 10;
+const fails = new Map<string, { n: number; until: number }>();
+
+function assertNotRateLimited(email: string): void {
+  const a = fails.get(email);
+  if (!a) return;
+  if (a.until <= Date.now()) {
+    fails.delete(email); // jendela habis → bersih
+    return;
+  }
+  if (a.n >= MAX_FAILS)
+    throw new ApiError(
+      "RATE_LIMITED",
+      "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
+      {},
+      429
+    );
+}
+function bumpFail(email: string): void {
+  const now = Date.now();
+  const a = fails.get(email);
+  if (!a || a.until <= now) fails.set(email, { n: 1, until: now + WINDOW_MS });
+  else a.n += 1;
+}
+
 // POST /api/auth/login — email + password, semua role.
 export const POST = route(async (req) => {
   const b = await readJson<{ email?: string; password?: string }>(req);
@@ -21,6 +51,8 @@ export const POST = route(async (req) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fields.email = "Format email tidak valid";
   if (!password) fields.password = "Password wajib diisi";
   if (Object.keys(fields).length) throw new ApiError("VALIDATION_ERROR", "Data tidak valid", fields, 400);
+
+  assertNotRateLimited(email);
 
   const { data: user, error } = await getAdminClient()
     .from("users")
@@ -35,9 +67,13 @@ export const POST = route(async (req) => {
     throw new ApiError("DB_ERROR", "Gagal memvalidasi akun", {}, 500);
   }
 
-  if (!user || !user.password_hash || !verifyPassword(password, user.password_hash))
+  if (!user || !user.password_hash || !verifyPassword(password, user.password_hash)) {
+    bumpFail(email);
     throw new ApiError("INVALID_CREDENTIALS", "Email atau password salah", {}, 401);
+  }
   if (!user.active) throw new ApiError("ACCOUNT_DISABLED", "Akun dinonaktifkan", {}, 403);
+
+  fails.delete(email); // sukses → reset hitungan
 
   const sessionUser = {
     id: user.id,

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Table } from "@/components/ui/Table";
 import { ExpenseCategoryBadge, Money } from "@/components/ui/custom-badges";
 import { isFutureDate, isPositive, todayISO, formatShortDate, formatRp } from "@/lib/utils";
+import { useUser } from "@/lib/useUser";
 
 interface ExpenseFormState {
   date: string;
@@ -23,6 +24,8 @@ export function ExpensesModule() {
   const expenses = useRPHStore((s) => s.expenses);
   const addExpense = useRPHStore((s) => s.addExpense);
   const removeExpense = useRPHStore((s) => s.removeExpense);
+  const user = useUser();
+  const canWrite = user?.role === "operator";
 
   const [form, setForm] = useState<ExpenseFormState>({
     date: todayISO(),
@@ -80,6 +83,8 @@ export function ExpensesModule() {
   };
 
   const handleRemove = async (id: string) => {
+    // Konfirmasi wajib — tanpa ini sekali ketuk (HP) = data hilang permanen.
+    if (!confirm("Hapus pengeluaran ini? Tindakan tidak bisa dibatalkan.")) return;
     try {
       await removeExpense(id);
     } catch {
@@ -222,7 +227,11 @@ export function ExpensesModule() {
           </select>
         }
       >
-        <Table columns={columns} data={filtered} emptyMessage="Belum ada pengeluaran" />
+        <Table
+          columns={canWrite ? columns : columns.filter((c) => c.key !== "actions")}
+          data={filtered}
+          emptyMessage="Belum ada pengeluaran"
+        />
       </Card>
     </div>
   );

@@ -15,7 +15,11 @@ export function assertNotFuture(date: unknown): void {
   if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new ApiError("VALIDATION_ERROR", "Tanggal wajib format YYYY-MM-DD", { date: "Format salah" }, 400);
   }
-  if (date > new Date().toISOString().slice(0, 10)) {
+  // Bandingkan dengan hari ini di WIB (UTC+7, tanpa DST), bukan UTC server.
+  // Server Vercel UTC: 00.00–07.00 WIB = tanggal "besok" versi UTC →
+  // input tanggal hari ini (jam kerja RPH) salah dibilang masa depan.
+  const todayWib = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+  if (date > todayWib) {
     throw new ApiError("VALIDATION_ERROR", "Data tidak valid", { date: "Tanggal tidak boleh di masa depan" }, 400);
   }
 }
